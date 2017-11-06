@@ -14,4 +14,4 @@ dependencies:
     
 test:
   override:
-    - PYTHONPATH=. pytest --cov=alphai_portfolio_optimisation --cov-report html:$CIRCLE_ARTIFACTS tests/
+    - PYTHONPATH=. pytest --cov=alphai_prototype_env --cov-report html:$CIRCLE_ARTIFACTS tests/
