@@ -18,7 +18,7 @@ Setup Development Environment
 
 ###Create conda environment
 ```bash
-$ conda create -n prototype-env python=3.4.4
+$ conda create -n prototype-env python=3.5
 $ source activate prototype-env
 ```
 ###Install dependencies
