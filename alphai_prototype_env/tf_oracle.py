@@ -70,7 +70,7 @@ class TFOracle(AbstractOracle):
 
     def predict(self, predict_data):
 
-        transformed_predict_data = self.train(predict_data)
+        transformed_predict_data = self.transform(predict_data)
         [num_steps, num_vars] = transformed_predict_data.shape
 
         predictions = np.zeros([num_steps, num_vars])

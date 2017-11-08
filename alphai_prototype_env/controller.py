@@ -21,6 +21,35 @@ class Controller(object):
 
         return model_metrics
 
+    def test_model_alternative(self, model, data_source):
+
+        model.load()
+
+        prediction_schedule = self.make_schedule(model, data_source)
+        # prediction_schedule = [{"prediction_vars":{"close":['APPL]},
+        #                         "prediction_datetime: '20010120',
+        #                         "last_datetime": '20010119' }]
+
+        predictions = []
+        actuals = []
+
+        for prediction_event in prediction_schedule:
+            query = model.generate_query(prediction_event)
+            # query = {"t_start":'20000101', "t_end": '20010119', "feature_vars": {close:['APPL']}}
+            sample = data_source.get_sample(query, prediction_event)  # check not asking for data after last_datetime
+            # sample = {"close":pd.DataFrame}
+            prediction = model.make_prediction(sample)
+            # prediction = {"mean": pd.Series, "covariance": pd.DataFrame}
+            actual = data_source.get_actual(prediction_event)
+            # actual = {"mean": pd.Series, "covariance": pd.DataFrame}
+
+            predictions.append(prediction)
+            actuals.append(actual)
+
+        model_metrics = self.metrics.compute_metrics(predictions, actuals)
+
+        return model_metrics
+
     def compare_to_baseline(self, model, data_source):
 
         self.check_model_compatible_with_baseline(model)
