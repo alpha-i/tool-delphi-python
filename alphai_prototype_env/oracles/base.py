@@ -3,16 +3,18 @@ from abc import ABCMeta, abstractmethod
 
 class AbstractOracle(metaclass=ABCMeta):
 
-    def __init__(self, frequency, delta, offset, past_horizon, feature_vars, prediction_vars):
+    def __init__(self, config):
         # Define the schedule on which trading will occur and the inputs and predicted outputs
 
         # (for now will assume that models can only make a prediction at a single point in time)
-        self.frequency = frequency  # in minutes
-        self.delta = delta  # in minutes
-        self.offset = offset  # in minutes
-        self.past_horizon = past_horizon  # time in minutes to look back for
-        self.feature_vars = feature_vars  # e.g., {"close": ['AAPL', 'MSFT'], "volume": ['AAPL', 'MSFT']}
-        self.prediction_vars = prediction_vars  # e.g., {"close": ['AAPL']}
+        self.frequency = config.frequency  # in minutes
+        self.delta = config.delta  # in minutes
+        self.offset = config.offset  # in minutes
+        self.past_horizon = config.past_horizon  # time in minutes to look back for
+
+    @abstractmethod
+    def build_model(self, data):
+        raise NotImplementedError()
 
     @abstractmethod
     def transform(self, data):
