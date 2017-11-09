@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-
-from alphai_prototype_env.abstract_oracle import AbstractOracle
 from alphai_finance.data.cleaning import resample_ohlcv
+
+from alphai_prototype_env.oracles.base import AbstractOracle
 
 
 class TFOracle(AbstractOracle):

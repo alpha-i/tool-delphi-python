@@ -1,4 +1,4 @@
-import numpy as np
+from alphai_prototype_env.metrics import Metrics
 
 
 class Controller(object):
@@ -10,18 +10,11 @@ class Controller(object):
     def train_model(self, model, data_source):
 
         model.reset()
-        model.train(data_source.train_data)
+        train_data = data_source.get_train_data()
+        model.train(train_data)
         model.save()
 
     def test_model(self, model, data_source):
-
-        model.load()
-        predictions = model.predict(data_source.test_data)   # predictions should be a dict of data_frames
-        model_metrics = self.metrics.compute_metrics(predictions, data_source.test_data)
-
-        return model_metrics
-
-    def test_model_alternative(self, model, data_source):
 
         model.load()
 
@@ -75,44 +68,9 @@ class Controller(object):
         if model.offset != self.baseline.delta:
             raise ValueError('model prediction offset should be equal to the baseline prediction offset')
 
-    def multiple_compare_to_baseline(self, model, data_source_list):
+    def compare_on_multiple_data_sources(self, model, data_source_list):
 
         results_dict = {}
         for data_source in data_source_list:
             results = self.compare_to_baseline(model, data_source)
-            results_dict[data_source.name] = results
-
-
-class Metrics(object):
-
-    def compute_log_likelihood(self, x, mu, sigma):
-        """
-        Computes the log likelihood of a data point x for a multivariate Gaussian
-        :param x: np.array([1, n])
-        :param mu: np.array([1, n])
-        :param sigma: np.array([n,n])
-        :return: log_likelihood: float
-        """
-
-        residuals = x - mu
-        sigma_inv = np.linalg.inv(sigma)
-        quadratic = np.dot(residuals, np.dot(sigma_inv, residuals.T))
-        n = len(residuals)
-        constant = n * np.log10(2 * np.pi)
-        log_det = np.log10(np.linalg.det(sigma))
-
-        log_likelihood = -0.5 * (quadratic + log_det + constant)
-
-        return log_likelihood
-
-    def compute_binary_accuracy(self):
-
-        return None
-
-    def compute_mean_log_likelihood(self, predictions, test_data):
-
-        return None
-
-    def compute_metrics(self, predictions, test_data):
-
-        return None
+            results_dict[data_source.__class__.__name__] = results

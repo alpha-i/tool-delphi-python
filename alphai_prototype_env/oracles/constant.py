@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from alphai_prototype_env.abstract_oracle import AbstractOracle
+from alphai_prototype_env.oracles.base import AbstractOracle
 
 
 class ConstantOracle(AbstractOracle):
