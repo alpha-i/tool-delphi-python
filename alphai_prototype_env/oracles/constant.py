@@ -6,9 +6,20 @@ from alphai_prototype_env.oracles.base import AbstractOracle
 
 class ConstantOracle(AbstractOracle):
 
-    def train(self, train_data):
+    def reset(self, data_source):
+        pass
 
-        return None
+    def save(self, filepath):
+        pass
+
+    def load(self, filepath):
+        pass
+
+    def transform(self, data):
+        pass
+
+    def train(self, train_data):
+        pass
 
     def predict(self, predict_data):
 

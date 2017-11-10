@@ -7,13 +7,32 @@ class AbstractOracle(metaclass=ABCMeta):
         # Define the schedule on which trading will occur and the inputs and predicted outputs
 
         # (for now will assume that models can only make a prediction at a single point in time)
-        self.frequency = config.frequency  # in minutes
-        self.delta = config.delta  # in minutes
-        self.offset = config.offset  # in minutes
+        self.trade_frequency = config.trade_frequency  # in minutes
+        self.trade_delta = config.trade_delta  # in minutes
+        self.trade_offset = config.trade_offset  # in minutes
         self.past_horizon = config.past_horizon  # time in minutes to look back for
+        self.retrain_frequency = config.retrain_frequency
 
     @abstractmethod
-    def build_model(self, data):
+    def reset(self, data):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def save(self, filepath):
+        """
+        Save model and parameters to a file
+        :param filepath: string
+        :return:
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def load(self, filepath):
+        """
+        Load an existing model from a filepath
+        :param filepath: string
+        :return:
+        """
         raise NotImplementedError()
 
     @abstractmethod
@@ -38,32 +57,5 @@ class AbstractOracle(metaclass=ABCMeta):
         """
         :param predict_data: OHLCV data as dictionary of pandas DataFrames.
         :return:
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def load(self, filepath):
-        """
-        Load an existing model from a filepath
-        :param filepath: string
-        :return:
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def save(self, filepath):
-        """
-        Save model and parameters to a file
-        :param filepath: string
-        :return:
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def get_batch(self, transformed_train_data):
-        """
-        Get a random batch of training data of size self.batch_size
-        :param transformed_train_data:
-        :return: features, labels
         """
         raise NotImplementedError()
