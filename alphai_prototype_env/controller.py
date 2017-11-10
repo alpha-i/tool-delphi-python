@@ -1,5 +1,3 @@
-from alphai_prototype_env.metrics import Metrics
-
 from alphai_prototype_env.basic_controller import BasicController
 
 
@@ -8,7 +6,6 @@ class Controller(BasicController):
     def __init__(self, baseline):
         super().__init__()
         self.baseline = baseline
-        self.metrics = Metrics()
 
     def compare_to_baseline(self, oracle, data_source):
 
@@ -26,13 +23,13 @@ class Controller(BasicController):
 
     def check_model_compatible_with_baseline(self, oracle):
 
-        if oracle.frequency != self.baseline.frequency:
-            raise ValueError('model prediction frequency should be equal to the baseline prediction frequency')
+        if oracle.trade_frequency != self.baseline.trade_frequency:
+            raise ValueError('oracle prediction frequency should be equal to the baseline prediction frequency')
 
-        if oracle.delta != self.baseline.delta:
-            raise ValueError('model prediction delta should be equal to the baseline prediction delta')
+        if oracle.trade_delta != self.baseline.trade_delta:
+            raise ValueError('oracle prediction delta should be equal to the baseline prediction delta')
 
-        if oracle.offset != self.baseline.delta:
+        if oracle.trade_offset != self.baseline.trade_offset:
             raise ValueError('model prediction offset should be equal to the baseline prediction offset')
 
     def compare_multiple_oracles(self, oracle_list, data_source):
