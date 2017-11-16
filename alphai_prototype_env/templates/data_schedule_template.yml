@@ -1,0 +1,20 @@
+data_schedule:
+  ingestion_file: "Q_19990101_20171103_971S_MD.tar.gz"
+  run_mode: 'backtest'
+  fill_limit: 5
+
+  resample_rule: '15T'
+
+  trade_history_ndays: 100
+  trade_frequency: 'daily'
+  trade_days_offset: 1
+  trade_minutes_offset: 60
+  trade_horizon_ncycles: 2
+
+  train_history_ndays: 200
+  train_frequency: 'weekly'
+  train_days_offset: 0
+  train_minutes_offset: 60
+
+  start_date: '20061231'
+  end_date: '20111231'

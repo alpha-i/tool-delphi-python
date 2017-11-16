@@ -1,0 +1,11 @@
+zipline:
+  start_date: '20061231'
+  end_date: '20111231'
+  capital_base: 10000000
+  data_bundle: 'test_bundle'
+  spread: 0.
+  open_close_fraction: 0.
+  volume_limit: 0.
+  price_impact: 0.
+  cost: 0.005
+  min_trade_cost: 1.

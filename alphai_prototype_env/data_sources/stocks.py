@@ -1,4 +1,4 @@
-from alphai_prototype_env.data_providers.hdf5 import HDF5DataProvider
+from alphai_prototype_env.providers.hdf5 import HDF5DataProvider
 from alphai_prototype_env.data_sources.base import AbstractDataSource
 
 
