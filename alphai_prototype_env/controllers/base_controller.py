@@ -21,7 +21,6 @@ class BaseController(object):
         oracle.load()
         data = data_source.get_data(mode)
         start, end = data_source.get_start_end_datetimes(mode)
-
         schedule = self.get_schedule(oracle, start, end)
 
         prediction_list = []
@@ -39,7 +38,7 @@ class BaseController(object):
                 prediction = oracle.predict(data_window)
                 prediction_list.append(prediction)
 
-                actual = data_source.get_data_actual(data, event.timestamp)
+                actual = data_source.get_data_window(data, event.prediction_start, event.prediction_end)
                 actual_list.append(actual)
 
             elif event.type == RETRAIN:
