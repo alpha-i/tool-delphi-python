@@ -1,4 +1,4 @@
-from alphai_prototype_env.base_controller import BaseController
+from alphai_prototype_env.controllers.base_controller import BaseController
 
 
 class Controller(BaseController):
