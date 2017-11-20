@@ -16,11 +16,13 @@ class BaseController(object):
         oracle.train(train_data)
         oracle.save()
 
-    def test_oracle(self, oracle, data_source):
+    def run_oracle(self, oracle, data_source, mode):
 
         oracle.load()
-        test_data = data_source.get_test_data()
-        schedule = self.get_schedule(oracle, data_source)
+        data = data_source.get_data(mode)
+        start, end = data_source.get_start_end_datetimes(mode)
+
+        schedule = self.get_schedule(oracle, start, end)
 
         prediction_list = []
         actual_list = []
@@ -29,15 +31,15 @@ class BaseController(object):
             query = oracle.generate_query(event)
 
             if query.end > event.timestamp - oracle.prediction_delta:
-                raise ValueError
+                raise ValueError('Not allowed to access data in the future.')
 
-            data_window = data_source.get_test_data_window(test_data, query.start, query.end)
+            data_window = data_source.get_data_window(data, query.start, query.end)
 
             if event.type == PREDICT:
                 prediction = oracle.predict(data_window)
                 prediction_list.append(prediction)
 
-                actual = data_source.get_test_actual(event.timestamp)
+                actual = data_source.get_data_actual(data, event.timestamp)
                 actual_list.append(actual)
 
             elif event.type == RETRAIN:
@@ -47,10 +49,8 @@ class BaseController(object):
 
         return model_metrics
 
-    def get_schedule(self, oracle, data_source):
+    def get_schedule(self, oracle, start, end):
 
         schedule = []
 
         return schedule
-
-
