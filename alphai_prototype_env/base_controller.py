@@ -8,7 +8,7 @@ PREDICT = "predict"
 RETRAIN = "retrain"
 
 
-class BasicController(object):
+class BaseController(object):
 
     def __init__(self):
         self.metrics = Metrics()

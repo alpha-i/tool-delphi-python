@@ -1,7 +1,7 @@
-from alphai_prototype_env.basic_controller import BasicController
+from alphai_prototype_env.base_controller import BaseController
 
 
-class Controller(BasicController):
+class Controller(BaseController):
 
     def __init__(self, baseline):
         super().__init__()
