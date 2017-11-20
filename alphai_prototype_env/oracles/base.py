@@ -1,5 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
+import pandas as pd
+
 
 class AbstractOracle(metaclass=ABCMeta):
 
@@ -14,7 +16,7 @@ class AbstractOracle(metaclass=ABCMeta):
         self.retrain_frequency = config.retrain_frequency
 
     @abstractmethod
-    def reset(self, data):
+    def reset(self ):
         raise NotImplementedError()
 
     @abstractmethod
@@ -45,7 +47,7 @@ class AbstractOracle(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def train(self, train_data):
+    def train(self, data):
         """
         :param train_data: OHLCV data as dictionary of pandas DataFrames.
         :return:
@@ -53,9 +55,11 @@ class AbstractOracle(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def predict(self, predict_data):
+    def predict(self, data):
         """
         :param predict_data: OHLCV data as dictionary of pandas DataFrames.
         :return:
         """
-        raise NotImplementedError()
+        prediction = (pd.Series(), pd.DataFrame)
+
+        return prediction

@@ -6,7 +6,7 @@ from alphai_prototype_env.oracles.base import AbstractOracle
 
 class ConstantOracle(AbstractOracle):
 
-    def reset(self, data_source):
+    def reset(self):
         pass
 
     def save(self, filepath):

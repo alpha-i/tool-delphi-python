@@ -1,8 +1,0 @@
-performance:
-  results_path: '/datadrive/results'
-  output_path: '/datadrive/performance_analysis_results'
-  oracle:
-    metrics: 'all'
-  financial:
-    live_start_date: ''
-    slippage: 0
