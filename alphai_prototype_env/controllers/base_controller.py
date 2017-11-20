@@ -1,8 +1,4 @@
-from collections import namedtuple
-
-from alphai_prototype_env.metrics import Metrics
-
-DataSlice = namedtuple('Slice', 'features targets')
+from alphai_prototype_env.metrics.metrics import Metrics
 
 PREDICT = "predict"
 RETRAIN = "retrain"
@@ -23,7 +19,6 @@ class BaseController(object):
     def test_oracle(self, oracle, data_source):
 
         oracle.load()
-
         test_data = data_source.get_test_data()
         schedule = self.get_schedule(oracle, data_source)
 
@@ -31,51 +26,31 @@ class BaseController(object):
         actual_list = []
 
         for event in schedule:
-            data_slice = self.get_data_slice(event, oracle, test_data)
+            query = oracle.generate_query(event)
+
+            if query.end > event.timestamp - oracle.prediction_delta:
+                raise ValueError
+
+            data_window = data_source.get_test_data_window(test_data, query.start, query.end)
 
             if event.type == PREDICT:
-                prediction = oracle.predict(data_slice)
+                prediction = oracle.predict(data_window)
                 prediction_list.append(prediction)
 
-                actual = self.get_actual(event, test_data)
+                actual = data_source.get_test_actual(event.timestamp)
                 actual_list.append(actual)
 
             elif event.type == RETRAIN:
-                oracle.train(data_slice)
+                oracle.train(data_window)
 
         model_metrics = self.metrics.compute_metrics(prediction_list, actual_list)
 
         return model_metrics
-
-    def get_data_slice(self, event, oracle, test_data):
-
-        query = oracle.generate_query(event)
-        self.check_query(query, event)
-        data_slice = self.slice_test_data(test_data, query)
-
-        return data_slice
 
     def get_schedule(self, oracle, data_source):
 
         schedule = []
 
         return schedule
-
-    def slice_test_data(self, test_data, query):
-
-        data_slice = DataSlice
-
-        return data_slice
-
-    def check_query(self, query, event):
-
-        return None
-
-    def get_actual(self, event, test_data):
-
-        actual = {}
-
-        return actual
-
 
 

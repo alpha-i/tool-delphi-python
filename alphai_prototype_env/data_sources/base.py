@@ -10,9 +10,25 @@ class AbstractDataSource(metaclass=ABCMeta):
         self._test_end = config.test_end
 
     @abstractmethod
-    def get_train_data(self):
+    def get_dev_data(self):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_validation_data(self):
         raise NotImplementedError()
 
     @abstractmethod
     def get_test_data(self):
         raise NotImplementedError()
+
+    @abstractmethod
+    def get_data_window(self, data, start, end):
+
+        data_window = {}
+
+        for key in data:
+            data_window[key] = data[key][start, end]
+
+        return data_window
+
+

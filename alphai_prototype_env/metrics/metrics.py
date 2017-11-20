@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class Metrics(object):
 
     def compute_log_likelihood(self, x, mu, sigma):
