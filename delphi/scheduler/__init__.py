@@ -1,1 +1,1 @@
-from delphi.scheduler.abstract_scheduler import Scheduler
+from delphi.scheduler.abstract_scheduler import Scheduler, AbstractScheduler
