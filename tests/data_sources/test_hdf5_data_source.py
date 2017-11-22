@@ -4,7 +4,7 @@ from unittest import TestCase
 
 import numpy as np
 
-from delphi.data_source.hdf5_data_source import HDF5DataSource
+from delphi.data_source.hdf5_data_source import StocksHDF5DataSource
 
 
 class TestHDF5DataProvider(TestCase):
@@ -21,7 +21,8 @@ class TestHDF5DataProvider(TestCase):
             "end": datetime.datetime(1999, 3, 1)
         }
 
-        cls.data_source = HDF5DataSource(cls.config)
+        cls.data_source = StocksHDF5DataSource(cls.config)
+
 
     def test_start(self):
 

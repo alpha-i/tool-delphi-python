@@ -9,14 +9,23 @@ class OracleAction(Enum):
 
 class PredictionResult:
     def __init__(self, mean_vector, covariance_matrix, timestamp):
+        """
+
+        :param mean_vector: vector of predicted means
+        :type mean_vector: pd.Series
+        :param covariance_matrix: covariance matrix
+        :type covariance_matrix: pd.DataFrame
+        :param timestamp: timestamp of the prediction
+        :type timestamp: datetime
+        """
         self.covariance_matrix = covariance_matrix
         self.mean_vector = mean_vector
         self.timestamp = timestamp
 
 
 class AbstractOracle(metaclass=ABCMeta):
-    def __init__(self, configuration):
-        self.configuration = configuration
+    def __init__(self, config):
+        self.config = config
 
     @abstractmethod
     def save(self):
@@ -33,7 +42,7 @@ class AbstractOracle(metaclass=ABCMeta):
         raise NotImplemented
 
     @abstractmethod
-    def train(self, datasource):
+    def train(self, data):
         """
         Main method for training our ML model
 
@@ -42,50 +51,61 @@ class AbstractOracle(metaclass=ABCMeta):
         raise NotImplemented
 
     @abstractmethod
-    def predict(self, datasource):
+    def predict(self, data, timestamp):
         """
         Main method that gives us a prediction after the training phase is done
 
-        :param datasource: The data source used for prediction
-        :type datasource: DataSource
-        :return: Minute vector or covariance method together with the timestamp of the prediction
+        :param data: The dict of dataframes to be used for prediction
+        :type data: dict
+        :param timestamp: The timestamp of the point in time we are predicting
+        :type timestamp: datetime
+        :return: Mean vector or covariance matrix together with the timestamp of the prediction
         :rtype: PredictionResult
         """
         raise NotImplemented
 
     @property
-    @abstractmethod
     def train_frequency(self):
         """
         Frequency upon which we do a training
 
         :rtype: SchedulingFrequency
         """
-        raise NotImplemented
+        return self.config["train_frequency"]
 
     @property
-    @abstractmethod
     def predict_frequency(self):
         """
         Frequency upon which we do a prediction
 
         :rtype: SchedulingFrequency
         """
-        raise NotImplemented
+        return self.config["predict_frequency"]
 
     @property
-    @abstractmethod
     def predict_horizon(self):
         """
         :rtype: datetime.timedelta
         """
-        raise NotImplemented
+        return self.config["predict_horizon"]
 
     @property
-    @abstractmethod
     def predict_offset(self):
         """
         Amount of time from the market open
         :rtype: datetime.timedelta
         """
-        raise NotImplemented
+        return self.config["predict_offset"]
+
+    @abstractmethod
+    def get_interval(self, event):
+        """
+        Given a schedule event, returns the interval of data
+        that the oracle wants to be passed to it by the data_source
+        :param event:
+        :type
+        :return: interval
+        :rtype: datetime.timedelta
+        """
+
+        raise NotImplementedError()
