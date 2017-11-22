@@ -8,10 +8,12 @@ class AbstractDataSource(metaclass=ABCMeta):
     @abstractmethod
     def get_data(self, current_datetime, interval):
         """
-        :param current_datetime, datetime
-        :param interval: timedelta
-        :type data_dict: dict
-        :return:
+        :param current_datetime: the current date and time to get data up until
+        :param interval: the interval of time to look back into the past
+        :type current_datetime: datetime.datetime
+        :type timedelta: datetime.timedelta
+        :return: a dictionary of data frames 
+        :rtype dict
         """
         raise NotImplemented
 
