@@ -23,6 +23,7 @@ class TestHDF5DataProvider(TestCase):
 
         cls.data_source = StocksHDF5DataSource(cls.config)
 
+
     def test_start(self):
 
         assert self.config["start"] == self.data_source.start()
