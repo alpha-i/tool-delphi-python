@@ -32,14 +32,14 @@ class AbstractOracle(metaclass=ABCMeta):
         """
         Save the trained oracle state
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def load(self):
         """
         Method to load a state for the ML model
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def train(self, data):
@@ -48,7 +48,7 @@ class AbstractOracle(metaclass=ABCMeta):
 
         :return: void
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def predict(self, data, timestamp):
@@ -62,7 +62,7 @@ class AbstractOracle(metaclass=ABCMeta):
         :return: Mean vector or covariance matrix together with the timestamp of the prediction
         :rtype: PredictionResult
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     def train_frequency(self):
@@ -107,5 +107,4 @@ class AbstractOracle(metaclass=ABCMeta):
         :return: interval
         :rtype: datetime.timedelta
         """
-
-        raise NotImplementedError()
+        raise NotImplementedError

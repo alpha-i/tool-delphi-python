@@ -55,11 +55,11 @@ class AbstractScheduler(metaclass=ABCMeta):
 
     @abstractmethod
     def __iter__(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def get_event(self, minute):
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class Scheduler(AbstractScheduler):

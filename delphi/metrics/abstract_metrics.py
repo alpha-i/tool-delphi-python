@@ -11,4 +11,4 @@ class AbstractMetrics(metaclass=ABCMeta):
         :param actuals:
         :return:
         """
-        raise NotImplemented
+        raise NotImplementedError
