@@ -3,21 +3,17 @@ from abc import ABCMeta, abstractmethod
 
 class AbstractDataSource(metaclass=ABCMeta):
     def __init__(self, configuration):
-        self.configuration = configuration
-
-    @property
-    @abstractmethod
-    def current_minute(self):
-        raise NotImplemented
+        self.config = configuration
 
     @abstractmethod
-    def get_data(self, interval):
+    def get_data(self, current_datetime, interval):
         """
-        Yeah, get data
-
-        :param interval: The interval before the current minute to get data for
-        :type interval: datetime.timedelta
-        :return:
+        :param current_datetime: the current date and time to get data up until
+        :type current_datetime: datetime.datetime
+        :param interval: the interval of time to look back into the past
+        :type timedelta: datetime.timedelta
+        :return: a dictionary of data frames
+        :rtype dict
         """
         raise NotImplemented
 

@@ -2,5 +2,7 @@ from abc import ABCMeta
 
 
 class DataSourceConfiguration(metaclass=ABCMeta):
-    # TODO: Make it a marshmallow schema
-    pass
+
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
