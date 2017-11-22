@@ -1,5 +1,5 @@
 import datetime
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from collections import defaultdict
 from enum import Enum
 
@@ -53,6 +53,11 @@ class AbstractScheduler(metaclass=ABCMeta):
         self.training_scheduling = training_scheduling
         self.prediction_horizon = prediction_horizon
 
+    @abstractmethod
+    def __iter__(self):
+        raise NotImplemented
+
+    @abstractmethod
     def get_event(self, minute):
         raise NotImplemented
 
