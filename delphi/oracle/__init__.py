@@ -1,2 +1,1 @@
-from delphi.oracle.abstract_oracle import AbstractOracle
-from delphi.oracle.oracle_configuration import OracleConfiguration
+from delphi.oracle.abstract_oracle import AbstractOracle, OracleAction

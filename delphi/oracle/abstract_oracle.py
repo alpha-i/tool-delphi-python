@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from enum import Enum
 
 
-class OracleActions(Enum):
+class OracleAction(Enum):
     PREDICT = 0
     TRAIN = 1
 
