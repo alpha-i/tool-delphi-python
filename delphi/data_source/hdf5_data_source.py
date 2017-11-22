@@ -7,9 +7,6 @@ from delphi.data_source.abstract_data_source import AbstractDataSource
 
 class HDF5DataSource(AbstractDataSource):
 
-    def __init__(self, config):
-        super().__init__(config)
-
     def start(self):
         return self.config["start"]
 
