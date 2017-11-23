@@ -59,6 +59,28 @@ class AbstractScheduler(metaclass=ABCMeta):
 
     @abstractmethod
     def get_event(self, minute):
+        """
+        Given a minute, give back the list of action(s) that the oracle is supposed to perform
+
+        :param minute: Minute in time to get an event for
+        :type minute: datetime.datetime
+        :return: List of actions to be performed by the oracle
+        :rtype: List[OracleActions]
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_first_valid_target(self, moment, interval):
+        """
+        Given a datetime and an interval, give back the first suitable datetime according to market schedule
+
+        :param moment:
+        :type moment: datetime.datetime
+        :param interval:
+        :type interval: datetime.timedelta
+        :return: The first suitable datetime
+        :rtype: datetime.datetime
+        """
         raise NotImplementedError
 
 
@@ -142,14 +164,15 @@ class Scheduler(AbstractScheduler):
                 for minute in minutes:
                     self.schedule[minute].add(action)
 
-    def get_event(self, minute):
-        """
-        Given a minute, give back the list of action(s) that the oracle is supposed to perform
+    def get_first_valid_target(self, moment, interval):
+        exchange_calendar = calendar.get_calendar(self.exchange_name)
+        exchange_schedule = exchange_calendar.schedule(self.start_date, self.end_date)
+        target = moment + interval
 
-        :param minute: Minute in time to get an event for
-        :type minute: datetime.datetime
-        :return: List of actions to be performed by the oracle
-        :rtype: List[OracleActions]
-        """
+        while not exchange_calendar.open_at_time(exchange_schedule, target):
+            target += datetime.timedelta(days=1)
+        return target
+
+    def get_event(self, minute):
         events = self.schedule.get(minute)
         return list(events) if events else []
