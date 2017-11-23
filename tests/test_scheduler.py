@@ -136,3 +136,47 @@ def test_scheduler_works_as_iterator():
     for day, events in test_scheduler:
         assert isinstance(day, datetime.datetime)
         assert isinstance(events, list)
+
+
+def test_scheduler_checks_for_valid_prediction_target():
+    test_scheduler = Scheduler(
+        start_date=datetime.datetime(2017, 12, 20),
+        end_date=datetime.datetime(2018, 1, 3),
+        exchange_name='NYSE',
+        prediction_horizon=datetime.timedelta(days=1),
+        prediction_scheduling=SchedulingFrequency(
+            frequency_type=SchedulingFrequencyType.DAILY, minutes_offset=15
+        ),  # every day, 15m after market start
+        training_scheduling=SchedulingFrequency(
+            frequency_type=SchedulingFrequencyType.DAILY,
+            minutes_offset=15
+        ),  # every day, 30m after market start
+    )
+    prediction_target = test_scheduler.get_first_valid_target(
+        moment=datetime.datetime(2017, 12, 24, 16, 0, tzinfo=pytz.UTC),
+        interval=datetime.timedelta(days=1)
+    )
+
+    assert prediction_target == datetime.datetime(2017, 12, 26, 16, 0, tzinfo=pytz.UTC)
+
+
+def test_scheduler_checks_for_valid_prediction_target_with_early_close():
+    test_scheduler = Scheduler(
+        start_date=datetime.datetime(2017, 11, 1),
+        end_date=datetime.datetime(2018, 1, 3),
+        exchange_name='NYSE',
+        prediction_horizon=datetime.timedelta(days=1),
+        prediction_scheduling=SchedulingFrequency(
+            frequency_type=SchedulingFrequencyType.DAILY, minutes_offset=15
+        ),  # every day, 15m after market start
+        training_scheduling=SchedulingFrequency(
+            frequency_type=SchedulingFrequencyType.DAILY,
+            minutes_offset=15
+        ),  # every day, 30m after market start
+    )
+    prediction_target = test_scheduler.get_first_valid_target(
+        moment=datetime.datetime(2017, 11, 23, 16, 0, tzinfo=pytz.UTC),  # Thanksgiving is an early close (1PM) day
+        interval=datetime.timedelta(days=1)
+    )
+
+    assert prediction_target == datetime.datetime(2017, 11, 24, 16, 0, tzinfo=pytz.UTC)

@@ -4,10 +4,10 @@ from unittest import TestCase
 
 import numpy as np
 
-from delphi.scheduler.abstract_scheduler import SchedulingFrequency
+from delphi.scheduler.abstract_scheduler import SchedulingFrequencyType
 from delphi.oracle.constant_oracle import ConstantOracle
 from delphi.data_source.hdf5_data_source import StocksHDF5DataSource
-from delphi.oracle.abstract_oracle import OracleActions
+from delphi.oracle.abstract_oracle import OracleAction
 
 
 class TestConstantOracle(TestCase):
@@ -25,8 +25,8 @@ class TestConstantOracle(TestCase):
         }
 
         cls.oracle_config = {
-            "train_frequency": SchedulingFrequency.WEEKLY,
-            "predict_frequency": SchedulingFrequency.DAILY,
+            "train_frequency": SchedulingFrequencyType.WEEKLY,
+            "predict_frequency": SchedulingFrequencyType.DAILY,
             "predict_horizon": datetime.timedelta(days=1),
             "predict_offset": datetime.timedelta(minutes=30),
             "constant_variance": 0.1,
@@ -41,7 +41,7 @@ class TestConstantOracle(TestCase):
 
         current_datetime = datetime.datetime(1999, 1, 20)
 
-        event = OracleActions.PREDICT
+        event = OracleAction.PREDICT
         interval = self.constant_oracle.get_interval(event)
 
         data = self.data_source.get_data(current_datetime, interval)

@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 import pandas as pd
 
-from delphi.oracle.abstract_oracle import AbstractOracle, PredictionResult, OracleActions
+from delphi.oracle.abstract_oracle import AbstractOracle, PredictionResult, OracleAction
 
 
 class ConstantOracle(AbstractOracle):
@@ -33,9 +33,9 @@ class ConstantOracle(AbstractOracle):
 
     def get_interval(self, event):
 
-        if event == OracleActions.TRAIN:
+        if event == OracleAction.TRAIN:
             interval = datetime.timedelta(days=1)
-        elif event == OracleActions.PREDICT:
+        elif event == OracleAction.PREDICT:
             interval = datetime.timedelta(days=7)
         else:
             raise ValueError('Unexpected scheduling event type: {}'.format(event))
