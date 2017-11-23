@@ -15,17 +15,28 @@ class PredictionResult:
         :type mean_vector: pd.Series
         :param covariance_matrix: covariance matrix
         :type covariance_matrix: pd.DataFrame
-        :param timestamp: timestamp of the prediction
+        :param timestamp: timestamp of the predicted date
         :type timestamp: datetime
         """
         self.covariance_matrix = covariance_matrix
         self.mean_vector = mean_vector
         self.timestamp = timestamp
 
+    def __repr__(self):
+        return "<Prediction result: {}>".format(self.__dict__)
+
 
 class AbstractOracle(metaclass=ABCMeta):
     def __init__(self, config):
-        self.config = config
+        """
+
+        :param scheduling:
+        :type scheduling: OracleSchedulingConfiguration
+        :param config:
+        :type config: OracleConfiguration
+        """
+        self.scheduling = config.scheduling
+        self.config = config.oracle
 
     @abstractmethod
     def save(self):
@@ -65,40 +76,39 @@ class AbstractOracle(metaclass=ABCMeta):
         raise NotImplementedError
 
     @property
-    def train_frequency(self):
+    def training_frequency(self):
         """
         Frequency upon which we do a training
 
         :rtype: SchedulingFrequency
         """
-        return self.config["train_frequency"]
+        return self.scheduling.training_frequency
 
     @property
-    def predict_frequency(self):
+    def prediction_frequency(self):
         """
         Frequency upon which we do a prediction
 
         :rtype: SchedulingFrequency
         """
-        return self.config["predict_frequency"]
+        return self.scheduling.prediction_frequency
 
     @property
-    def predict_horizon(self):
+    def prediction_horizon(self):
         """
         :rtype: datetime.timedelta
         """
-        return self.config["predict_horizon"]
+        return self.scheduling.prediction_horizon
 
     @property
-    def predict_offset(self):
+    def prediction_offset(self):
         """
         Amount of time from the market open
         :rtype: datetime.timedelta
         """
-        return self.config["predict_offset"]
+        return self.scheduling.prediction_offset
 
-    @abstractmethod
-    def get_interval(self, event):
+    def get_delta_for_event(self, event):
         """
         Given a schedule event, returns the interval of data
         that the oracle wants to be passed to it by the data_source
@@ -107,4 +117,9 @@ class AbstractOracle(metaclass=ABCMeta):
         :return: interval
         :rtype: datetime.timedelta
         """
-        raise NotImplementedError
+        if event == OracleAction.PREDICT:
+            return self.scheduling.prediction_delta
+        elif event == OracleAction.TRAIN:
+            return self.scheduling.training_delta
+
+        raise ValueError("Event type {} not supported".format(event))

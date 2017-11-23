@@ -26,3 +26,6 @@ class StocksHDF5DataSource(AbstractDataSource):
         data_dict = select_trading_hours(data_dict, market_calendar)
 
         return data_dict
+
+    def values_for_symbols_feature_and_time(self, symbol_list, feature, current_datetime):
+        pass

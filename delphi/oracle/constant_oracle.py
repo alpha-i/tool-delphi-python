@@ -31,7 +31,7 @@ class ConstantOracle(AbstractOracle):
 
         return prediction
 
-    def get_interval(self, event):
+    def get_delta_for_event(self, event):
 
         if event == OracleAction.TRAIN:
             interval = datetime.timedelta(days=1)
