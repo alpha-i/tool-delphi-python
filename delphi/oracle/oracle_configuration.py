@@ -1,4 +1,4 @@
-from delphi.configuration.schemas import OracleSchedulingConfigurationSchema
+from delphi.configuration.schemas import OracleSchedulingConfigurationSchema, AttributeDict
 
 
 class OracleConfiguration:
@@ -29,7 +29,4 @@ class OracleConfiguration:
             raise Exception(result.errors)
 
         self.scheduling = result.data
-        self.oracle = config['oracle']
-
-    def get(self, field):
-        return self.oracle.get(field)
+        self.oracle = AttributeDict(config['oracle'])

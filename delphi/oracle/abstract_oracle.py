@@ -23,7 +23,7 @@ class PredictionResult:
         self.timestamp = timestamp
 
     def __repr__(self):
-        return str(self.__dict__)
+        return "<Prediction result: {}>".format(self.__dict__)
 
 
 class AbstractOracle(metaclass=ABCMeta):

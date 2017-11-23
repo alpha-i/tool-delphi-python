@@ -4,7 +4,7 @@ import datetime
 import pandas as pd
 import pytz
 
-from delphi.controller.abstract_controller import Controller
+from delphi.controller import Controller
 from delphi.data_source.hdf5_data_source import StocksHDF5DataSource
 from delphi.oracle import AbstractOracle
 from delphi.oracle.abstract_oracle import PredictionResult
@@ -94,10 +94,3 @@ def test_controller_initialisation():
     )
 
     controller.run()
-
-
-
-
-
-
-
