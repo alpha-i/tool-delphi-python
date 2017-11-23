@@ -17,6 +17,30 @@ class AbstractDataSource(metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def values_for_symbols_feature_and_time(self, symbol_list, feature, current_datetime):
+        """
+        Return the value for in the coordinates identified by feature, datetime and list of symbol.
+        The current data has the following structure.
+        {
+            feature =>           | symbol1 | symbol2 | symbol3 |
+                        12:00:00 |   1.3   |   0.5   |  0.3    |
+                        12:01:00 |   1.3   |   0.5   |  0.3    |
+                        12:02:00 |   1.3   |   0.5   |  0.3    |
+                        12:03:00 |   1.3   |   0.5   |  0.3    |
+                        12:04:00 |   1.3   |   0.5   |  0.3    |
+        }
+        :param symbol_list: the list of symbols we want to get value for
+        :type symbol_list: list
+        :param str feature:
+        :type feature: str
+        :param current_datetime:
+        :type current_datetime: datetime.datetime
+        :return:
+        :rtype: np.array
+        """
+        raise NotImplementedError
+
     @property
     @abstractmethod
     def start(self):

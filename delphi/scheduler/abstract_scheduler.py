@@ -33,24 +33,24 @@ class SchedulingFrequency:
 
 class AbstractScheduler(metaclass=ABCMeta):
     def __init__(self, start_date, end_date,
-                 prediction_scheduling, training_scheduling,
+                 prediction_frequency, training_frequency,
                  prediction_horizon):
         """
-        :param start_date:
+        :param start_date: The beginning of the full scheduling window
         :type start_date: datetime.datetime
-        :param end_date:
+        :param end_date: The end of the scheduling window
         :type end_date: datetime.datetime
-        :param training_scheduling:
-        :type training_scheduling: SchedulingFrequency
-        :param prediction_scheduling:
-        :type prediction_scheduling: SchedulingFrequency
-        :param prediction_horizon:
+        :param training_frequency: Defines the frequency of training to build a schedule
+        :type training_frequency: SchedulingFrequency
+        :param prediction_frequency: Define the frequency of Prediction to build a schedule
+        :type prediction_frequency: SchedulingFrequency
+        :param prediction_horizon: The prediction horizon
         :type prediction_horizon: datetime.timedelta
         """
         self.start_date = start_date
         self.end_date = end_date
-        self.prediction_scheduling = prediction_scheduling
-        self.training_scheduling = training_scheduling
+        self.prediction_frequency = prediction_frequency
+        self.training_frequency = training_frequency
         self.prediction_horizon = prediction_horizon
 
     @abstractmethod
@@ -90,7 +90,7 @@ class Scheduler(AbstractScheduler):
     """
 
     def __init__(self, start_date, end_date, exchange_name,
-                 prediction_scheduling, training_scheduling,
+                 prediction_frequency, training_frequency,
                  prediction_horizon):
 
         """
@@ -98,19 +98,19 @@ class Scheduler(AbstractScheduler):
         :type exchange_name: str
         """
 
-        super().__init__(start_date, end_date, prediction_scheduling, training_scheduling, prediction_horizon)
+        super().__init__(start_date, end_date, prediction_frequency, training_frequency, prediction_horizon)
         self.start_date = start_date
         self.end_date = end_date
         self.exchange_name = exchange_name
 
-        self.prediction_scheduling = prediction_scheduling
-        self.training_scheduling = training_scheduling
+        self.prediction_frequency = prediction_frequency
+        self.training_frequency = training_frequency
 
         self.prediction_horizon = prediction_horizon
 
         self.schedule = defaultdict(set)
-        self._init_a_schedule(self.training_scheduling, OracleAction.TRAIN)
-        self._init_a_schedule(self.prediction_scheduling, OracleAction.PREDICT)
+        self._init_a_schedule(self.training_frequency, OracleAction.TRAIN)
+        self._init_a_schedule(self.prediction_frequency, OracleAction.PREDICT)
 
     def __iter__(self):
         for schedule_day in sorted(self.schedule.keys()):
@@ -139,12 +139,11 @@ class Scheduler(AbstractScheduler):
         exchange_calendar = calendar.get_calendar(self.exchange_name)
         exchange_schedule = exchange_calendar.schedule(self.start_date, self.end_date)
         if schedule.frequency_type == SchedulingFrequencyType.WEEKLY:
-            # get a list of all the days where the action should take place
-            # (.weekday is the same as the offset: 0 is a Monday)
-            training_days = self._get_scheduled_days(exchange_calendar, schedule.days_offset, self.start_date,
-                                                     self.end_date)
+            scheduled_days = self._get_scheduled_days(
+                exchange_calendar, schedule.days_offset, self.start_date,
+                self.end_date)
 
-            for day in training_days:
+            for day in scheduled_days:
                 market_open = exchange_schedule.loc[day, "market_open"]
                 scheduled_time = market_open + datetime.timedelta(minutes=schedule.minutes_offset)
                 self.schedule[scheduled_time].add(action)
@@ -171,8 +170,15 @@ class Scheduler(AbstractScheduler):
 
         while not exchange_calendar.open_at_time(exchange_schedule, target):
             target += datetime.timedelta(days=1)
+            if target > self.end_date:
+                raise ScheduleException("Target outside of scheduling window")
+
         return target
 
     def get_event(self, minute):
         events = self.schedule.get(minute)
         return list(events) if events else []
+
+
+class ScheduleException(Exception):
+    pass

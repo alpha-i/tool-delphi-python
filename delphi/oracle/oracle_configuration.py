@@ -1,11 +1,35 @@
-from abc import ABCMeta
+from delphi.configuration.schemas import OracleSchedulingConfigurationSchema
 
 
-class OracleConfiguration(metaclass=ABCMeta):
-    # TODO: make me a marshmallow schema
+class OracleConfiguration:
 
-    def __init__(self, training_frequency, prediction_frequency, prediction_offset, prediction_horizon):
-        self.prediction_horizon = prediction_horizon
-        self.prediction_offset = prediction_offset
-        self.prediction_frequency = prediction_frequency
-        self.training_frequency = training_frequency
+    SCHEMA = OracleSchedulingConfigurationSchema()
+
+    def __init__(self, config):
+        """
+        Loads a dict containing the configuration
+        {
+        'scheduling': {
+            'prediction_horizon': '',
+            'prediction_offset': '',
+            'prediction_frequency': '',
+            'prediction_delta': '',
+
+            'training_frequency': '',
+            'training_delta': '',
+        },
+        'oracle': {
+            }
+        }
+        :param config:
+        :type config: dict
+        """
+        result = self.SCHEMA.load(config['scheduling'])
+        if result.errors:
+            raise Exception(result.errors)
+
+        self.scheduling = result.data
+        self.oracle = config['oracle']
+
+    def get(self, field):
+        return self.oracle.get(field)
