@@ -15,14 +15,14 @@ class AbstractDataSource(metaclass=ABCMeta):
         :return: a dictionary of data frames
         :rtype dict
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def start(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def end(self):
-        raise NotImplemented
+        raise NotImplementedError
