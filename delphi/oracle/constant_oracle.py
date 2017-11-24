@@ -8,6 +8,18 @@ from delphi.oracle.abstract_oracle import AbstractOracle, PredictionResult, Orac
 
 class ConstantOracle(AbstractOracle):
 
+    def resample(self, data):
+        return data
+
+    def fill_nan(self, data):
+        return data
+
+    def global_transform(self, data):
+        return data
+
+    def get_universe(self, data):
+        return pd.DataFrame()
+
     @property
     def target_feature(self):
         return self.config.target_feature
@@ -18,7 +30,7 @@ class ConstantOracle(AbstractOracle):
     def load(self):
         pass
 
-    def train(self, data):
+    def train(self, data, timestamp):
         pass
 
     def predict(self, data, timestamp):

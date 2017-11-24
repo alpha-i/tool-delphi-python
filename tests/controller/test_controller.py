@@ -23,27 +23,6 @@ TEST_HDF5FILE_NAME = os.path.join(os.path.dirname(__file__), '..', 'resources', 
 TEMPORARY_DIRECTORY = TemporaryDirectory()
 
 
-class DummyOracle(AbstractOracle):
-    def get_interval(self, event):
-        pass
-
-    def save(self):
-        pass
-
-    def load(self):
-        pass
-
-    def predict(self, data, timestamp):
-        return PredictionResult(
-            pd.Series(),
-            pd.DataFrame(),
-            timestamp
-        )
-
-    def train(self, data):
-        pass
-
-
 class DummyDataSource(AbstractDataSource):
     """
     A dummy data source, useful if you can't be bothered with the slow HDF5 source
@@ -136,8 +115,9 @@ class TestController(unittest.TestCase):
             'end_date': simulation_end.strftime('%Y-%m-%d')
         })
 
+        temp_dir = TemporaryDirectory()
         oracle_performance = OraclePerformance(
-            os.path.dirname(__file__), 'test'
+            temp_dir.name, 'test'
         )
 
         controller = Controller(
@@ -154,7 +134,7 @@ class TestController(unittest.TestCase):
 
         # Check if output files have been written
         assert len(
-            glob.glob(os.path.dirname(__file__) + "/*hdf5")
+            glob.glob(temp_dir.name + "/*hdf5")
         ) == 3
 
     # to run this test use add the parameter --runslow to the pytest invoker
@@ -215,8 +195,9 @@ class TestController(unittest.TestCase):
             'end_date': simulation_end.strftime('%Y-%m-%d')
         })
 
+        temp_dir = TemporaryDirectory()
         oracle_performance = OraclePerformance(
-            os.path.dirname(__file__), 'test'
+            temp_dir.name, 'test'
         )
 
         controller = Controller(
@@ -230,7 +211,7 @@ class TestController(unittest.TestCase):
         controller.run()
 
         # Check if files have been writter
-        assert len(glob.glob(os.path.dirname(__file__) + "/*hdf5")) == 3
+        assert len(glob.glob(temp_dir.name + "/*hdf5")) == 3
 
     # to run this test use add the parameter --runslow to the pytest invoker
     @pytest.mark.slow
@@ -289,8 +270,9 @@ class TestController(unittest.TestCase):
             'end_date': simulation_end.strftime('%Y-%m-%d')
         })
 
+        temp_dir = TemporaryDirectory()
         oracle_performance = OraclePerformance(
-            os.path.dirname(__file__), 'test'
+            temp_dir.name, 'test'
         )
 
         controller = Controller(
@@ -304,8 +286,5 @@ class TestController(unittest.TestCase):
         controller.run()
 
         # Check if files have been writter
-        assert len(glob.glob(os.path.dirname(__file__) + "/*hdf5")) == 3
+        assert len(glob.glob(temp_dir.name + "/*hdf5")) == 3
 
-    def tearDown(self):
-        for output_file in glob.glob(os.path.dirname(__file__) + "/*hdf5"):
-            os.remove(output_file)

@@ -50,19 +50,14 @@ class AbstractOracle(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def train(self, data, universe, timestamp):
-        """
-        :param data: The dict of dataframes to be used for training
-        :type data: dict:
-        :param universe: the universe of symbols active
-        :type universe: pd.DataFrame
-        :param timestamp: The timestamp of the point in time we are predicting
-        :type timestamp: datetime
-        :return:
-        """
+    def train(self, data, timestamp):
         """
         Main method for training our ML model
 
+        :param data: The dict of dataframes to be used for training
+        :type data: dict:
+        :param timestamp: The timestamp of the point in time we are predicting
+        :type timestamp: datetime
         :return: void
         """
         raise NotImplementedError
@@ -78,6 +73,41 @@ class AbstractOracle(metaclass=ABCMeta):
         :type timestamp: datetime
         :return: Mean vector or covariance matrix together with the timestamp of the prediction
         :rtype: PredictionResult
+        """
+        raise NotImplementedError
+
+    def _preprocess_raw_data(self, data):
+        resampled_raw_data = self.resample(data)
+        resampled_raw_data = self.fill_nan(resampled_raw_data)
+        return self.global_transform(resampled_raw_data)
+
+    @abstractmethod
+    def resample(self, data):
+        raise NotImplementedError
+
+    @abstractmethod
+    def fill_nan(self, data):
+        raise NotImplementedError
+
+    @abstractmethod
+    def global_transform(self, data):
+        """
+        does resampling and  global transformations
+
+        :param data:  The dict of dataframes
+        :type data: dict
+        :return: dict of dataframes
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_universe(self, data):
+        """
+        returns universe based on transformed data
+
+        :param data:  The dict of dataframes
+        :type data: dict
+        :return: dataframe
         """
         raise NotImplementedError
 
