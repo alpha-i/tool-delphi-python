@@ -1,8 +1,14 @@
-import os
 import logging
+import os
+import warnings
 
 import numpy as np
 import pandas as pd
+from tables import NaturalNameWarning
+
+# We want to hide the number of NaturalNameWarning warnings when we format the column names
+# according to the `TIMESTAMP_FORMAT`.
+warnings.simplefilter(action='ignore', category=NaturalNameWarning)
 
 ORACLE_RESULTS_MEAN_VECTOR_TEMPLATE = '{}_oracle_results_mean_vector.hdf5'
 ORACLE_RESULTS_COVARIANCE_MATRIX_TEMPLATE = '{}_oracle_results_covariance_matrix.hdf5'
@@ -10,8 +16,6 @@ ORACLE_RESULTS_ACTUALS_TEMPLATE = '{}_oracle_results_actuals.hdf5'
 METRIC_COLUMNS = ['returns_forecast_mean_vector', 'returns_forecast_covariance_matrix', 'initial_prices',
                   'final_prices', 'returns_actuals']
 TIMESTAMP_FORMAT = '%Y%m%d-%H%M%S'
-
-logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 
 class OraclePerformance:
@@ -32,7 +36,7 @@ class OraclePerformance:
         self.add_index_value(target_dt)
         self.metrics['initial_prices'][target_dt] = initial_prices
 
-    def add_final_prices(self, target_dt, final_prices):
+    def add_final_values(self, target_dt, final_prices):
         if target_dt not in self.metrics.index:
             logging.error("Error in getting equity symbols at {}: target_dt not in index".format(target_dt))
         else:
@@ -40,7 +44,15 @@ class OraclePerformance:
             self.metrics['final_prices'][target_dt] = final_prices
             self.metrics['returns_actuals'][target_dt] = self.calculate_log_returns(initial_prices, final_prices)
 
-    def get_equity_symbols(self, target_dt):
+    def get_symbols(self, target_dt):
+        """
+        Generalised form of get_equity_symbols
+
+        :param target_dt: The datetime to get symbols at
+        :type target_dt: datetime.datetime
+        :return: an np.Array of symbols
+        :rtype np.array
+        """
         if target_dt not in self.metrics.index:
             logging.error("Error in getting equity symbols at {}: target_dt not in index".format(target_dt))
             return np.nan

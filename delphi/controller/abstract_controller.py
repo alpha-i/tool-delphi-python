@@ -1,13 +1,10 @@
-import logging
 from abc import ABCMeta, abstractmethod
 
 from delphi.oracle.performance import OraclePerformance
 
-logging.getLogger(__name__).addHandler(logging.NullHandler())
-
 
 class AbstractController(metaclass=ABCMeta):
-    def __init__(self, configuration, oracle, datasource, scheduler):
+    def __init__(self, configuration, oracle, datasource, scheduler, performance):
         """
         :param configuration:
         :type configuration: ControllerConfiguration
@@ -17,18 +14,16 @@ class AbstractController(metaclass=ABCMeta):
         :type datasource: AbstractDataSource
         :param scheduler: the Scheduler
         :type scheduler: AbstractScheduler
+        :param performance: the performance class
+        :type performance: OraclePerformance
         """
         self.configuration = configuration
         self.oracle = oracle
         self.datasource = datasource
         self.scheduler = scheduler
-        self.performance = OraclePerformance(
-            configuration.performance_result_output,
-            'delphi'
-        )
+        self.performance = performance
+        self.prediction_results = []
 
     @abstractmethod
     def run(self):
         raise NotImplementedError
-
-

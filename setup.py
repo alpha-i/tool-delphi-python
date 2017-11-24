@@ -11,6 +11,7 @@ setup(
     install_requires=[
         'numpy',
         'pandas',
+        'tables',
         'pandas-market-calendars==0.11',
         'alphai_finance==1.3.1',
         'dateutils==0.6.6',

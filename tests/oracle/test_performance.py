@@ -69,11 +69,11 @@ class TestOraclePerformance(TestCase):
 
     @mock.patch('delphi.oracle.performance.logging')
     def test_add_final_prices(self, mock_logging):
-        self.oracle_perf.add_final_prices(self.sample_target_dt, self.sample_final_prices)
+        self.oracle_perf.add_final_values(self.sample_target_dt, self.sample_final_prices)
         assert mock_logging.error.called
 
         self.oracle_perf.add_initial_prices(self.sample_target_dt, self.sample_initial_prices)
-        self.oracle_perf.add_final_prices(self.sample_target_dt, self.sample_final_prices)
+        self.oracle_perf.add_final_values(self.sample_target_dt, self.sample_final_prices)
         self.assertEqual(len(self.oracle_perf), 1)
         assert self.sample_target_dt in self.oracle_perf
         self.assertEqual(self.oracle_perf.metrics.index[0], self.sample_target_dt)
@@ -84,11 +84,11 @@ class TestOraclePerformance(TestCase):
 
     @mock.patch('delphi.oracle.performance.logging')
     def test_get_equity_symbols(self, mock_logging):
-        self.oracle_perf.get_equity_symbols(self.sample_target_dt)
+        self.oracle_perf.get_symbols(self.sample_target_dt)
         assert mock_logging.error.called
 
         self.oracle_perf.add_initial_prices(self.sample_target_dt, self.sample_initial_prices)
-        symbols = self.oracle_perf.get_equity_symbols(self.sample_target_dt)
+        symbols = self.oracle_perf.get_symbols(self.sample_target_dt)
         assert set(symbols) == set(self.sample_symbols)
 
     def test_add_index_value(self):
@@ -105,7 +105,7 @@ class TestOraclePerformance(TestCase):
         self.oracle_perf.add_prediction(self.sample_target_dt,
                                         self.sample_mean_vector_forecast,
                                         self.sample_covariance_matrix_forecast)
-        self.oracle_perf.add_final_prices(self.sample_target_dt, self.sample_final_prices)
+        self.oracle_perf.add_final_values(self.sample_target_dt, self.sample_final_prices)
         self.oracle_perf.save_to_hdf5(self.sample_target_dt)
 
         second_target_dt = pd.Timestamp("2017-05-30 18:44:00", tz='UTC')
@@ -113,7 +113,7 @@ class TestOraclePerformance(TestCase):
         self.oracle_perf.add_prediction(second_target_dt,
                                         self.sample_mean_vector_forecast,
                                         self.sample_covariance_matrix_forecast)
-        self.oracle_perf.add_final_prices(second_target_dt, self.sample_final_prices)
+        self.oracle_perf.add_final_values(second_target_dt, self.sample_final_prices)
         self.oracle_perf.save_to_hdf5(second_target_dt)
 
         results_mean_vector_filepath = \
@@ -147,7 +147,7 @@ class TestOraclePerformance(TestCase):
         self.oracle_perf.add_prediction(self.sample_target_dt,
                                         self.sample_mean_vector_forecast,
                                         self.sample_covariance_matrix_forecast)
-        self.oracle_perf.add_final_prices(self.sample_target_dt, self.sample_final_prices)
+        self.oracle_perf.add_final_values(self.sample_target_dt, self.sample_final_prices)
         assert self.sample_target_dt in self.oracle_perf
 
         self.oracle_perf.drop_dt(self.sample_target_dt)
