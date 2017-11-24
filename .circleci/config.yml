@@ -44,7 +44,7 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            PYTHONPATH=. pytest --cov=delphi --cov-report html:test-reports tests/
+            pytest --cov=delphi --cov-report html:test-reports tests/ --runslow
 
       - store_artifacts:
           path: test-reports
