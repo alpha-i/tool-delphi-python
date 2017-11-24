@@ -42,7 +42,8 @@ class TestConstantOracle(TestCase):
             },
             "oracle": {
                 "constant_variance": 0.1,
-                "past_horizon": datetime.timedelta(days=7)
+                "past_horizon": datetime.timedelta(days=7),
+                "target_feature": 'close'
             }
 
 
@@ -63,4 +64,4 @@ class TestConstantOracle(TestCase):
 
         prediction = self.constant_oracle.predict(data, current_datetime)
 
-        assert np.all([prediction.mean_vector.values == data['close'].iloc[-1].values])
+        assert np.allclose(prediction.mean_vector.values, data['close'].iloc[-1].values, equal_nan=True)

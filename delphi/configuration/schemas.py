@@ -31,3 +31,7 @@ class OracleSchedulingConfigurationSchema(BaseSchema):
     training_delta = fields.TimeDelta(precision='hours', required=True)
 
 
+class ControllerConfigurationSchema(BaseSchema):
+    start_date = fields.DateTime(required=True)
+    end_date = fields.DateTime(required=True)
+    performance_result_output = fields.Str(required=True)

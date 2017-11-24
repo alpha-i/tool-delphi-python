@@ -1,16 +1,17 @@
 import os
 import datetime
+from tempfile import TemporaryDirectory
 
 import pandas as pd
 import pytz
 
-from delphi.controller import Controller
+from delphi.controller import Controller, ControllerConfiguration
 from delphi.data_source.hdf5_data_source import StocksHDF5DataSource
 from delphi.oracle import AbstractOracle
 from delphi.oracle.abstract_oracle import PredictionResult
+from delphi.oracle.constant_oracle import ConstantOracle
 from delphi.oracle.oracle_configuration import OracleConfiguration
 from delphi.scheduler import Scheduler
-from delphi.scheduler.abstract_scheduler import SchedulingFrequency, SchedulingFrequencyType
 
 
 class DummyOracle(AbstractOracle):
@@ -36,6 +37,8 @@ class DummyOracle(AbstractOracle):
 
 
 filename = os.path.join(os.path.dirname(__file__), '..', 'resources', '19990101_19990301_3_stocks.hdf5')
+
+temp_dir = TemporaryDirectory()
 
 
 def test_controller_initialisation():
@@ -73,11 +76,14 @@ def test_controller_initialisation():
                 "training_delta": 480,
             },
             "oracle": {
+                "constant_variance": 0.1,
+                "past_horizon": datetime.timedelta(days=7),
+                "target_feature": 'close'
             }
         }
     )
 
-    oracle = DummyOracle(oracle_config)
+    oracle = ConstantOracle(oracle_config)
     scheduler = Scheduler(simulation_start,
                           simulation_end,
                           exchange_name,
@@ -86,8 +92,14 @@ def test_controller_initialisation():
                           oracle.prediction_horizon
                           )
 
+    controller_configuration = ControllerConfiguration({
+        'performance_result_output': temp_dir.name,
+        'start_date': simulation_start.strftime('%Y-%m-%d'),
+        'end_date': simulation_end.strftime('%Y-%m-%d')
+    })
+
     controller = Controller(
-        configuration={},
+        configuration=controller_configuration,
         oracle=oracle,
         scheduler=scheduler,
         datasource=datasource

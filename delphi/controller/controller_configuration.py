@@ -1,13 +1,23 @@
 from abc import ABCMeta
 
+from delphi.configuration.schemas import ControllerConfigurationSchema
+
 
 class ControllerConfiguration(metaclass=ABCMeta):
-    # TODO: make me a marshmallow schema
-    
-    def __init__(self, start_date, end_date):
+
+    SCHEMA = ControllerConfigurationSchema()
+
+    def __init__(self, configuration):
         """
-        :param start_date: Start of the backtest / run
-        :param end_date: End of the backtest / run
+
+        :param configuration: Dictionary of configuration
+        :type configuration: dict
+
         """
-        self.end_date = end_date
-        self.start_date = start_date
+        result, error = self.SCHEMA.load(configuration)
+        if result.errors:
+            raise Exception(result.errors)
+
+        self.end_date = result.start_date
+        self.start_date = result.end_date
+        self.performance_result_output = result.performance_result_output

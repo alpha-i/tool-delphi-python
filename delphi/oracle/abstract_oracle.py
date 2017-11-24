@@ -108,6 +108,11 @@ class AbstractOracle(metaclass=ABCMeta):
         """
         return self.scheduling.prediction_offset
 
+    @property
+    @abstractmethod
+    def target_feature(self):
+        raise NotImplementedError
+
     def get_delta_for_event(self, event):
         """
         Given a schedule event, returns the interval of data
