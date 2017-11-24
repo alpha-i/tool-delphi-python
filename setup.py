@@ -9,8 +9,8 @@ setup(
     version='0.5.0',
     packages=find_packages(exclude=['doc', 'tests*']),
     install_requires=[
-        'numpy>=1.11.3',
-        'pandas==0.19.2',
+        'numpy',
+        'pandas',
         'pandas-market-calendars==0.11',
         'alphai_finance==1.3.1',
         'dateutils==0.6.6',
