@@ -1,1 +1,1 @@
-from delphi.oracle.abstract_oracle import AbstractOracle, OracleAction
+from delphi.oracle.abstract_oracle import AbstractOracle, OracleAction, PredictionResult

@@ -3,6 +3,12 @@ from abc import ABCMeta, abstractmethod
 
 class AbstractDataSource(metaclass=ABCMeta):
     def __init__(self, configuration):
+        """
+        A blueprint for possible data sources
+
+        :param configuration:
+        :type configuration: dict
+        """
         self.config = configuration
 
     @abstractmethod

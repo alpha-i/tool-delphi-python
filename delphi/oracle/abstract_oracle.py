@@ -108,6 +108,15 @@ class AbstractOracle(metaclass=ABCMeta):
         """
         return self.scheduling.prediction_offset
 
+    @property
+    @abstractmethod
+    def target_feature(self):
+        """
+        This is the feature name that will be predicted (Must be present in the input data too)
+        :rtype: str
+        """
+        raise NotImplementedError
+
     def get_delta_for_event(self, event):
         """
         Given a schedule event, returns the interval of data

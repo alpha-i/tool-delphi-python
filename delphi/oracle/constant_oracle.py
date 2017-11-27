@@ -8,6 +8,10 @@ from delphi.oracle.abstract_oracle import AbstractOracle, PredictionResult, Orac
 
 class ConstantOracle(AbstractOracle):
 
+    @property
+    def target_feature(self):
+        return self.config.target_feature
+
     def save(self):
         pass
 
