@@ -17,5 +17,8 @@ setup(
         'dateutils==0.6.6',
         'marshmallow==3.0.0b4',
         'marshmallow-enum==1.4.1',
-    ]
+    ],
+    dependency_links=[
+        'https://pypi.fury.io/zNzsk7gQsYY335HLzW9x/alpha-i/alphai_finance/',
+        ]
 )
