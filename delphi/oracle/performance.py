@@ -82,8 +82,6 @@ class OraclePerformance:
             logging.error("Failed to save to hdf5 at {}: target_dt not in index or nan was found".format(target_dt))
         else:
             target_dt_key = target_dt.strftime(format=TIMESTAMP_FORMAT)
-            # TODO: Check if we can avoid saving directly to a file here
-            # is it going to be always these three files?
             self.metrics.loc[target_dt, 'returns_forecast_mean_vector'].to_hdf(
                 self.output_mean_vector_filepath, target_dt_key)
             self.metrics.loc[target_dt, 'returns_forecast_covariance_matrix'].to_hdf(

@@ -47,7 +47,6 @@ class Controller(AbstractController):
                 current_dt
             )
             self.performance.add_final_values(current_dt, final_values)
-            # TODO: Check if we can avoid saving directly to a file here
             self.performance.save_to_hdf5(current_dt)
             self.performance.drop_dt(current_dt)
 
