@@ -111,6 +111,10 @@ class AbstractOracle(metaclass=ABCMeta):
     @property
     @abstractmethod
     def target_feature(self):
+        """
+        This is the feature name that will be predicted (Must be present in the input data too)
+        :rtype: str
+        """
         raise NotImplementedError
 
     def get_delta_for_event(self, event):
