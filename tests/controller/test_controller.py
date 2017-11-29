@@ -131,7 +131,6 @@ class TestController(unittest.TestCase):
                               )
 
         controller_configuration = ControllerConfiguration({
-            'performance_result_output': TEMPORARY_DIRECTORY.name,
             'start_date': simulation_start.strftime('%Y-%m-%d'),
             'end_date': simulation_end.strftime('%Y-%m-%d')
         })
@@ -167,6 +166,7 @@ class TestController(unittest.TestCase):
         data_source_config = {
             "filename": TEST_HDF5FILE_NAME,
             "exchange": exchange_name,
+            "data_timezone": "America/New_York",
             "start": datetime.datetime(1999, 1, 1, tzinfo=pytz.utc),
             "end": datetime.datetime(1999, 3, 1, tzinfo=pytz.utc)
         }
@@ -210,7 +210,6 @@ class TestController(unittest.TestCase):
                               )
 
         controller_configuration = ControllerConfiguration({
-            'performance_result_output': TEMPORARY_DIRECTORY.name,
             'start_date': simulation_start.strftime('%Y-%m-%d'),
             'end_date': simulation_end.strftime('%Y-%m-%d')
         })

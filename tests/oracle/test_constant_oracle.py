@@ -23,7 +23,8 @@ class TestConstantOracle(TestCase):
             "filename": filename,
             "exchange": "NYSE",
             "start": datetime.datetime(1999, 1, 1, tzinfo=pytz.utc),
-            "end": datetime.datetime(1999, 3, 1, tzinfo=pytz.utc)
+            "end": datetime.datetime(1999, 3, 1, tzinfo=pytz.utc),
+            "data_timezone": "America/New_York"
         }
 
         cls.oracle_config = OracleConfiguration({

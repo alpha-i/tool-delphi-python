@@ -29,9 +29,6 @@ class PredictionResult:
 class AbstractOracle(metaclass=ABCMeta):
     def __init__(self, config):
         """
-
-        :param scheduling:
-        :type scheduling: OracleSchedulingConfiguration
         :param config:
         :type config: OracleConfiguration
         """
@@ -53,7 +50,16 @@ class AbstractOracle(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def train(self, data):
+    def train(self, data, universe, timestamp):
+        """
+        :param data: The dict of dataframes to be used for training
+        :type data: dict:
+        :param universe: the universe of symbols active
+        :type universe: pd.DataFrame
+        :param timestamp: The timestamp of the point in time we are predicting
+        :type timestamp: datetime
+        :return:
+        """
         """
         Main method for training our ML model
 

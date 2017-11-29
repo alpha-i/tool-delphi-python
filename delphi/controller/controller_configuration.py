@@ -20,4 +20,3 @@ class ControllerConfiguration(metaclass=ABCMeta):
 
         self.end_date = result.start_date
         self.start_date = result.end_date
-        self.performance_result_output = result.performance_result_output
