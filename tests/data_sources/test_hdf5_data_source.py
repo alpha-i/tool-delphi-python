@@ -19,6 +19,7 @@ class TestHDF5DataProvider(TestCase):
         cls.config = {
             "filename": filename,
             "exchange": "NYSE",
+            "data_timezone": "America/New_York",
             "start": datetime.datetime(1999, 1, 1),
             "end": datetime.datetime(1999, 3, 1)
         }
@@ -43,7 +44,14 @@ class TestHDF5DataProvider(TestCase):
         data_dict = self.data_source.get_data(current_datetime, interval)
 
         assert data_dict['close'].iloc[0].name.day == 11
+        assert data_dict['close'].iloc[0].name.hour == 14
+        assert data_dict['close'].iloc[0].name.minute == 30
+        assert data_dict['close'].iloc[0].name.tzinfo == pytz.utc
+
         assert data_dict['close'].iloc[-1].name.day == 15
+        assert data_dict['close'].iloc[0].name.hour == 14
+        assert data_dict['close'].iloc[0].name.minute == 30
+        assert data_dict['close'].iloc[0].name.tzinfo == pytz.utc
 
         assert np.all([data_dict['close'].columns == expected_symbols])
 
@@ -60,7 +68,7 @@ class TestHDF5DataProvider(TestCase):
 
         assert isinstance(data, pd.Series)
         assert set(data.index) == set(expected_symbols)
-        assert set(data.values) == {70.69, 11.769, 21.18}
+        np.testing.assert_almost_equal(list(data.values), [70.19, np.nan,  20.81])
 
         expected_symbols = ['AMZN', 'BAX']
 
@@ -74,7 +82,7 @@ class TestHDF5DataProvider(TestCase):
 
         assert isinstance(data, pd.Series)
         assert set(data.index) == set(expected_symbols)
-        assert set(data.values) == {70.69, 11.769}
+        np.testing.assert_almost_equal(list(data.values), [70.19, np.nan])
 
 
 

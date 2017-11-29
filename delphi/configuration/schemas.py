@@ -50,8 +50,6 @@ class ControllerConfigurationSchema(BaseSchema):
     """
     start_date: the start date of the simulation
     end_date : the end date of the simulation
-    performance_result_output: the path where the performances are saved
     """
     start_date = fields.DateTime(required=True)
     end_date = fields.DateTime(required=True)
-    performance_result_output = fields.Str(required=True)
