@@ -178,24 +178,24 @@ class TestController(unittest.TestCase):
                     "prediction_horizon": 240,
                     "prediction_frequency":
                         {
-                            "frequency_type": 'DAILY',
+                            "frequency_type": "DAILY",
                             "days_offset": 0,
                             "minutes_offset": 15
                         },
-                    "prediction_delta": 240,
+                    "prediction_delta": 10,
 
                     "training_frequency":
                         {
-                            "frequency_type": 'WEEKLY',
+                            "frequency_type": "WEEKLY",
                             "days_offset": 0,
                             "minutes_offset": 15
                         },
-                    "training_delta": 480,
+                    "training_delta": 20,
                 },
                 "oracle": {
                     "constant_variance": 0.1,
                     "past_horizon": datetime.timedelta(days=7),
-                    "target_feature": 'close'
+                    "target_feature": "close"
                 }
             }
         )
