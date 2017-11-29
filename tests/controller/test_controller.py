@@ -285,7 +285,6 @@ class TestController(unittest.TestCase):
                               )
 
         controller_configuration = ControllerConfiguration({
-            'performance_result_output': TEMPORARY_DIRECTORY.name,
             'start_date': simulation_start.strftime('%Y-%m-%d'),
             'end_date': simulation_end.strftime('%Y-%m-%d')
         })
