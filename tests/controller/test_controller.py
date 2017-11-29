@@ -12,6 +12,7 @@ import pytz
 from delphi.controller import Controller, ControllerConfiguration
 from delphi.data_source import AbstractDataSource
 from delphi.data_source.hdf5_data_source import StocksHDF5DataSource
+from delphi.data_source.stochastic_process_data_source import StochasticProcessDataSource
 from delphi.oracle import AbstractOracle, PredictionResult
 from delphi.oracle.constant_oracle import ConstantOracle
 from delphi.oracle.oracle_configuration import OracleConfiguration
@@ -201,6 +202,80 @@ class TestController(unittest.TestCase):
         )
 
         oracle = ConstantOracle(oracle_config)
+        scheduler = Scheduler(simulation_start,
+                              simulation_end,
+                              exchange_name,
+                              oracle.prediction_frequency,
+                              oracle.training_frequency,
+                              oracle.prediction_horizon
+                              )
+
+        controller_configuration = ControllerConfiguration({
+            'start_date': simulation_start.strftime('%Y-%m-%d'),
+            'end_date': simulation_end.strftime('%Y-%m-%d')
+        })
+
+        oracle_performance = OraclePerformance(
+            os.path.dirname(__file__), 'test'
+        )
+
+        controller = Controller(
+            configuration=controller_configuration,
+            oracle=oracle,
+            scheduler=scheduler,
+            datasource=datasource,
+            performance=oracle_performance
+        )
+
+        controller.run()
+
+        # Check if files have been writter
+        assert len(glob.glob(os.path.dirname(__file__) + "/*hdf5")) == 3
+
+    # to run this test use add the parameter --runslow to the pytest invoker
+    @pytest.mark.slow
+    def test_controller_with_stochastic_process_data_source(self):
+        exchange_name = "NYSE"
+        data_source_config = {
+            "exchange": exchange_name,
+            "start": datetime.datetime(1999, 1, 1, tzinfo=pytz.utc),
+            "end": datetime.datetime(1999, 3, 1, tzinfo=pytz.utc)
+        }
+        datasource = StochasticProcessDataSource(data_source_config)
+
+        oracle_config = OracleConfiguration(
+            {
+                "scheduling": {
+                    "prediction_horizon": 240,
+                    "prediction_frequency":
+                        {
+                            "frequency_type": "DAILY",
+                            "days_offset": 0,
+                            "minutes_offset": 15
+                        },
+                    "prediction_delta": 10,
+
+                    "training_frequency":
+                        {
+                            "frequency_type": "WEEKLY",
+                            "days_offset": 0,
+                            "minutes_offset": 15
+                        },
+                    "training_delta": 20,
+                },
+                "oracle": {
+                    "constant_variance": 0.1,
+                    "past_horizon": datetime.timedelta(days=7),
+                    "target_feature": "close"
+                }
+            }
+        )
+
+        oracle = ConstantOracle(oracle_config)
+
+        # these dates need to be within [start, end] of the data source
+        simulation_start = datetime.datetime(1999, 1, 10, tzinfo=pytz.utc)
+        simulation_end = datetime.datetime(1999, 2, 10, tzinfo=pytz.utc)
         scheduler = Scheduler(simulation_start,
                               simulation_end,
                               exchange_name,
