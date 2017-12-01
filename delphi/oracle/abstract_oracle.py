@@ -50,27 +50,29 @@ class AbstractOracle(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def train(self, data, timestamp):
+    def train(self, data, current_timestamp):
         """
         Main method for training our ML model
 
         :param data: The dict of dataframes to be used for training
         :type data: dict:
-        :param timestamp: The timestamp of the point in time we are predicting
-        :type timestamp: datetime
+        :param current_timestamp: The timestamp of the time when the train is executed
+        :type current_timestamp: datetime
         :return: void
         """
         raise NotImplementedError
 
     @abstractmethod
-    def predict(self, data, timestamp):
+    def predict(self, data, current_timestamp, target_timestamp):
         """
         Main method that gives us a prediction after the training phase is done
 
         :param data: The dict of dataframes to be used for prediction
         :type data: dict
-        :param timestamp: The timestamp of the point in time we are predicting
-        :type timestamp: datetime
+        :param current_timestamp: The timestamp of the time when the prediction is executed
+        :type current_timestamp: datetime.datetime
+        :param target_timestamp: The timestamp of the point in time we are predicting
+        :type target_timestamp: datetime.datetime
         :return: Mean vector or covariance matrix together with the timestamp of the prediction
         :rtype: PredictionResult
         """

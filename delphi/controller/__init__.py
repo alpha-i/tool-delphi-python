@@ -28,7 +28,7 @@ class Controller(AbstractController):
                         logging.debug(e)
                         continue
                     logging.debug("Prediction at {}".format(moment))
-                    prediction_result = self.oracle.predict(raw_data, target_moment)
+                    prediction_result = self.oracle.predict(raw_data, moment, target_moment)
                     self.prediction_results.append(prediction_result)
                     self._record_prediction(moment, self.oracle.target_feature, prediction_result)
 

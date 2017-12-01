@@ -30,10 +30,10 @@ class ConstantOracle(AbstractOracle):
     def load(self):
         pass
 
-    def train(self, data, timestamp):
+    def train(self, data, current_timestamp):
         pass
 
-    def predict(self, data, timestamp):
+    def predict(self, data, current_timestamp, target_timestamp):
 
         constant_variance = self.config["constant_variance"]
 
@@ -43,7 +43,7 @@ class ConstantOracle(AbstractOracle):
         mean = data['close'].iloc[-1]
         covariance = pd.DataFrame(data=constant_variance * np.eye(num_symbols), index=symbols, columns=symbols)
 
-        prediction = PredictionResult(mean, covariance, timestamp)
+        prediction = PredictionResult(mean, covariance, target_timestamp)
 
         return prediction
 
