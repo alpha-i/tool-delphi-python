@@ -62,7 +62,8 @@ class TestConstantOracle(TestCase):
         interval = self.constant_oracle.get_delta_for_event(event)
 
         data = self.data_source.get_data(current_datetime, interval)
+        target_timestamp = current_datetime + self.constant_oracle.prediction_horizon
 
-        prediction = self.constant_oracle.predict(data, current_datetime)
+        prediction = self.constant_oracle.predict(data, current_datetime, target_timestamp)
 
         assert np.allclose(prediction.mean_vector.values, data['close'].iloc[-1].values, equal_nan=True)
