@@ -21,5 +21,6 @@ setup(
     ],
     dependency_links=[
         'https://pypi.fury.io/zNzsk7gQsYY335HLzW9x/alpha-i/alphai_finance/',
+        'https://pypi.fury.io/zNzsk7gQsYY335HLzW9x/alpha-i/performance_analysis/',
         ]
 )
