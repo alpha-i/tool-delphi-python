@@ -4,7 +4,7 @@ from collections import defaultdict
 import psycopg2
 from psycopg2.extras import DictCursor
 
-from delphi.data_source import AbstractDataSource
+from alphai_delphi.data_source import AbstractDataSource
 import pandas as pd
 
 

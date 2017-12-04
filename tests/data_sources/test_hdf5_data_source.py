@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytz
 
-from delphi.data_source.hdf5_data_source import StocksHDF5DataSource
+from alphai_delphi.data_source.hdf5_data_source import StocksHDF5DataSource
 
 
 class TestHDF5DataProvider(TestCase):

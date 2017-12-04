@@ -2,10 +2,10 @@ import logging
 
 import numpy as np
 
-from delphi.controller.abstract_controller import AbstractController
-from delphi.controller.controller_configuration import ControllerConfiguration
-from delphi.oracle import OracleAction
-from delphi.scheduler import ScheduleException
+from alphai_delphi.controller.abstract_controller import AbstractController
+from alphai_delphi.controller.controller_configuration import ControllerConfiguration
+from alphai_delphi.oracle import OracleAction
+from alphai_delphi.scheduler import ScheduleException
 
 
 class Controller(AbstractController):

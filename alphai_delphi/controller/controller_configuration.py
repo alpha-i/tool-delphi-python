@@ -1,6 +1,6 @@
 from abc import ABCMeta
 
-from delphi.configuration.schemas import ControllerConfigurationSchema
+from alphai_delphi.configuration.schemas import ControllerConfigurationSchema
 
 
 class ControllerConfiguration(metaclass=ABCMeta):

@@ -4,8 +4,8 @@ from collections import defaultdict
 import pandas_market_calendars as calendar
 from dateutil import rrule
 
-from delphi.oracle import OracleAction
-from delphi.scheduler.abstract_scheduler import AbstractScheduler, SchedulingFrequencyType, ScheduleException
+from alphai_delphi.oracle import OracleAction
+from alphai_delphi.scheduler.abstract_scheduler import AbstractScheduler, SchedulingFrequencyType, ScheduleException
 
 
 class Scheduler(AbstractScheduler):

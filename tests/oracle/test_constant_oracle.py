@@ -5,11 +5,11 @@ from unittest import TestCase
 import numpy as np
 import pytz
 
-from delphi.oracle.oracle_configuration import OracleConfiguration
-from delphi.scheduler.abstract_scheduler import SchedulingFrequencyType
-from delphi.oracle.constant_oracle import ConstantOracle
-from delphi.data_source.hdf5_data_source import StocksHDF5DataSource
-from delphi.oracle.abstract_oracle import OracleAction
+from alphai_delphi.oracle.oracle_configuration import OracleConfiguration
+from alphai_delphi.scheduler.abstract_scheduler import SchedulingFrequencyType
+from alphai_delphi.oracle.constant_oracle import ConstantOracle
+from alphai_delphi.data_source.hdf5_data_source import StocksHDF5DataSource
+from alphai_delphi.oracle.abstract_oracle import OracleAction
 
 
 class TestConstantOracle(TestCase):

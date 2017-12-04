@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytz
 import pandas_market_calendars as mcal
-from delphi.data_source.abstract_data_source import AbstractDataSource
+from alphai_delphi.data_source.abstract_data_source import AbstractDataSource
 from alphai_time_series.make_series import random_walks
 
 
