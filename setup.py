@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='delphi',
+    name='alphai_delphi',
     description='Delphi: Alpha-I Prototype Environment',
     author='Gabriele Alese, Richard Mason, Daniele Murroni',
     author_email='gabriele.alese@alpha-i.co, richard.mason@alpha-i.co, daniele.murroni@alpha-i.co',

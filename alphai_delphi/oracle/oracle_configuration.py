@@ -1,4 +1,4 @@
-from delphi.configuration.schemas import OracleSchedulingConfigurationSchema, AttributeDict
+from alphai_delphi.configuration.schemas import OracleSchedulingConfigurationSchema, AttributeDict
 
 
 class OracleConfiguration:

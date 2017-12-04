@@ -44,7 +44,7 @@ jobs:
           name: run tests
           command: |
             . venv/bin/activate
-            pytest --cov=delphi --cov-report xml:reports/coverage.xml --junitxml=reports/junit.xml tests/  --runslow
+            pytest --cov=alphai_delphi --cov-report xml:reports/coverage.xml --junitxml=reports/junit.xml tests/  --runslow
 
       - store_artifacts:
           path: ./reports

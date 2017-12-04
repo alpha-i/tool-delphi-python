@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 import pandas as pd
 
-from delphi.oracle.abstract_oracle import AbstractOracle, PredictionResult, OracleAction
+from alphai_delphi.oracle.abstract_oracle import AbstractOracle, PredictionResult, OracleAction
 
 
 class ConstantOracle(AbstractOracle):

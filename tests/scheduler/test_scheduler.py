@@ -1,6 +1,6 @@
-from delphi.oracle import OracleAction
-from delphi.scheduler import Scheduler
-from delphi.scheduler.abstract_scheduler import SchedulingFrequency, SchedulingFrequencyType
+from alphai_delphi.oracle import OracleAction
+from alphai_delphi.scheduler import Scheduler
+from alphai_delphi.scheduler.abstract_scheduler import SchedulingFrequency, SchedulingFrequencyType
 from pandas import Timestamp
 
 import datetime

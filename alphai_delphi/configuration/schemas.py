@@ -1,7 +1,7 @@
 from marshmallow import Schema, fields
 from marshmallow_enum import EnumField
 
-from delphi.scheduler.abstract_scheduler import SchedulingFrequencyType
+from alphai_delphi.scheduler.abstract_scheduler import SchedulingFrequencyType
 
 
 class AttributeDict(dict):

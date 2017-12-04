@@ -5,7 +5,7 @@ import pytest
 import pytz
 import pandas as pd
 
-from delphi.data_source.sp500_data_source import SP500DataSource
+from alphai_delphi.data_source.sp500_data_source import SP500DataSource
 
 data_source_config = {
     "filename": "",

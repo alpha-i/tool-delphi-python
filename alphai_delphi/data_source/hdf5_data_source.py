@@ -5,7 +5,7 @@ import pytz
 from alphai_finance.data.cleaning import convert_to_utc, select_trading_hours
 from alphai_finance.data.read_from_hdf5 import get_all_table_names_in_hdf5, read_feature_data_dict_from_hdf5
 
-from delphi.data_source.abstract_data_source import AbstractDataSource
+from alphai_delphi.data_source.abstract_data_source import AbstractDataSource
 
 
 class StocksHDF5DataSource(AbstractDataSource):
