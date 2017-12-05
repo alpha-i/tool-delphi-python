@@ -32,7 +32,6 @@ class Controller(AbstractController):
                     self.prediction_results.append(prediction_result)
                     self._record_prediction(moment, self.oracle.target_feature, prediction_result)
 
-    def analyse(self):
         self.performance.create_oracle_report()
 
     def _record_actual_performance(self, feature_name, current_dt):

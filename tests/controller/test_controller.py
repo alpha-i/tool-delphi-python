@@ -56,7 +56,9 @@ class DummyDataSource(AbstractDataSource):
         return datetime.datetime(1999, 1, 11, 14, 33)
 
     def values_for_symbols_feature_and_time(self, symbol_list, feature, current_datetime):
-        return pd.DataFrame(data=np.random.random(3))
+        time_index = pd.DatetimeIndex(data=[current_datetime])
+        return pd.DataFrame(index=time_index, columns=['AMZN', 'GOOG', 'MSFT'],
+                            data=[np.random.random(3)]).loc[current_datetime]
 
 
 class TestController(unittest.TestCase):
