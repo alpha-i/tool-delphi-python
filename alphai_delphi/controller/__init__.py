@@ -27,6 +27,8 @@ class Controller(AbstractController):
                         continue
                     self._do_predict(raw_data, moment, target_moment)
 
+        self.performance.create_oracle_report()
+
     def _do_train(self, raw_data, current_moment):
         """
         Perfrorm Training
@@ -65,7 +67,7 @@ class Controller(AbstractController):
         except ValueError as e:
             logging.error("SKIP prediction. Reason {}".format(e))
 
-        self.performance.create_oracle_report()
+
 
     def _record_actual_performance(self, feature_name, current_dt):
         """
