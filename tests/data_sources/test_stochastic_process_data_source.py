@@ -23,11 +23,11 @@ class TestStochasticProcessDataSource(TestCase):
 
     def test_start(self):
 
-        assert self.config["start"] == self.data_source.start()
+        assert self.config["start"] == self.data_source.start
 
     def test_end(self):
 
-        assert self.config["end"] == self.data_source.end()
+        assert self.config["end"] == self.data_source.end
 
     def test_get_data(self):
 

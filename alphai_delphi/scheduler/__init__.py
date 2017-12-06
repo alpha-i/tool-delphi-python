@@ -32,7 +32,7 @@ class Scheduler(AbstractScheduler):
 
         self.prediction_horizon = prediction_horizon
 
-        self.schedule = defaultdict(set)
+        self.schedule = defaultdict(list)
         self._init_a_schedule(self.training_frequency, OracleAction.TRAIN)
         self._init_a_schedule(self.prediction_frequency, OracleAction.PREDICT)
 
@@ -70,14 +70,14 @@ class Scheduler(AbstractScheduler):
             for day in scheduled_days:
                 market_open = exchange_schedule.loc[day, "market_open"]
                 scheduled_time = market_open + datetime.timedelta(minutes=schedule.minutes_offset)
-                self.schedule[scheduled_time].add(action)
+                self.schedule[scheduled_time].append(action)
 
         elif schedule.frequency_type == SchedulingFrequencyType.DAILY:
             market_days = exchange_calendar.valid_days(self.start_date, self.end_date)
             for day in market_days:
                 market_open = exchange_schedule.loc[day, "market_open"]
                 scheduled_time = market_open + datetime.timedelta(minutes=schedule.minutes_offset)
-                self.schedule[scheduled_time].add(action)
+                self.schedule[scheduled_time].append(action)
 
         elif schedule.frequency_type == SchedulingFrequencyType.MINUTE:
             for day in exchange_calendar.valid_days(self.start_date, self.end_date):
@@ -85,7 +85,7 @@ class Scheduler(AbstractScheduler):
                 market_close = exchange_schedule.loc[day, "market_close"]
                 minutes = rrule.rrule(rrule.MINUTELY, dtstart=market_open, until=market_close)
                 for minute in minutes:
-                    self.schedule[minute].add(action)
+                    self.schedule[minute].append(action)
 
     def get_first_valid_target(self, moment, interval):
         exchange_calendar = calendar.get_calendar(self.exchange_name)

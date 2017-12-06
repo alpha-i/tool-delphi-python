@@ -8,6 +8,9 @@ from alphai_delphi.oracle.abstract_oracle import AbstractOracle, PredictionResul
 
 class ConstantOracle(AbstractOracle):
 
+    def _sanity_check(self):
+        return True
+
     def resample(self, data):
         return data
 
