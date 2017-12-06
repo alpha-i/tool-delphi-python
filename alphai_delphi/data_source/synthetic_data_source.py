@@ -259,9 +259,6 @@ class SyntheticDataSource(AbstractDataSource):
 
         )
 
-    def get_exchange_name(self):
-        return 'NYSE'
-
     def get_data(self, current_datetime, interval):
         assert current_datetime.tzinfo == pytz.utc, "Datetime must provided in UTC timezone"
         start_datetime = current_datetime - interval
@@ -273,8 +270,8 @@ class SyntheticDataSource(AbstractDataSource):
         return data
 
     def values_for_symbols_feature_and_time(self, symbol_list, feature, current_datetime):
-        if current_datetime.tzinfo != pytz.utc:
-            raise ValueError("Datetime must provided in UTC timezone")
+        assert current_datetime.tzinfo == pytz.utc, "Datetime must provided in UTC timezone"
+
         try:
             values_for_features = self._data_dict[feature]
         except KeyError as e:
