@@ -6,6 +6,14 @@ import numpy as np
 import pandas as pd
 from tables import NaturalNameWarning
 
+from performance_analysis.cli import read_oracle_results_from_path, read_oracle_symbol_weights_from_path
+
+from performance_analysis.oracle import (
+    create_oracle_performance_report,
+    create_oracle_data_report,
+    create_time_series_plot,
+)
+
 # We want to hide the number of NaturalNameWarning warnings when we format the column names
 # according to the `TIMESTAMP_FORMAT`.
 warnings.simplefilter(action='ignore', category=NaturalNameWarning)
@@ -21,6 +29,7 @@ TIMESTAMP_FORMAT = '%Y%m%d-%H%M%S'
 class OraclePerformance:
     def __init__(self, output_path, run_mode):
         self.metrics = pd.DataFrame(columns=METRIC_COLUMNS)
+        self._output_path = output_path
         self.output_mean_vector_filepath = \
             os.path.join(output_path, ORACLE_RESULTS_MEAN_VECTOR_TEMPLATE.format(run_mode))
         self.output_covariance_matrix_filepath = \
@@ -88,6 +97,15 @@ class OraclePerformance:
                 self.output_covariance_matrix_filepath, target_dt_key)
             self.metrics.loc[target_dt, 'returns_actuals'].to_hdf(
                 self.output_actuals_filepath, target_dt_key)
+
+    def create_oracle_report(self):
+        results_path = self._output_path
+        output_path = self._output_path
+        oracle_results = read_oracle_results_from_path(results_path)
+        oracle_symbol_weights = read_oracle_symbol_weights_from_path(results_path)
+        create_oracle_performance_report(oracle_results, output_path, oracle_symbol_weights)
+        create_oracle_data_report(oracle_results, output_path)
+        create_time_series_plot(oracle_results, output_path)
 
     def drop_dt(self, target_dt):
         if target_dt not in self.metrics.index:
