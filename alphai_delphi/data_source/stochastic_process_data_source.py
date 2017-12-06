@@ -13,9 +13,11 @@ class StochasticProcessDataSource(AbstractDataSource):
         self._data_dict = {}
         self._setup_data()
 
+    @property
     def start(self):
         return self.config["start"]
 
+    @property
     def end(self):
         return self.config["end"]
 
@@ -58,8 +60,8 @@ class StochasticProcessDataSource(AbstractDataSource):
     def _setup_data(self):
         exchange_name = self.config['exchange']
         time_index = self._create_minute_datetime_index(exchange_name=exchange_name,
-                                                        start_date=self.start(),
-                                                        end_date=self.end())
+                                                        start_date=self.start,
+                                                        end_date=self.end)
         correlation_coeff = 0.1
         offset = correlation_coeff / 5.
         n_series = 10

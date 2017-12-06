@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
 
+from pandas.core.base import DataError
+
 
 class OracleAction(Enum):
     PREDICT = 0
@@ -34,6 +36,11 @@ class AbstractOracle(metaclass=ABCMeta):
         """
         self.scheduling = config.scheduling
         self.config = config.oracle
+        self._sanity_check()
+
+    @abstractmethod
+    def _sanity_check(self):
+        raise NotImplementedError("You must implement a sanity check against the configuration of your oracle")
 
     @abstractmethod
     def save(self):
@@ -79,9 +86,28 @@ class AbstractOracle(metaclass=ABCMeta):
         raise NotImplementedError
 
     def _preprocess_raw_data(self, data):
-        data = self.fill_nan(data)
-        data = self.resample(data)
-        return self.global_transform(data)
+        """
+        Preprocess the data for the oracle, calling concrete implementations of
+
+        AbstractOracle.fill_nan
+        AbstractOracle.resample
+        AbstractOracle.global_transform
+
+        in this specifi order.
+
+        Raise a ValueError if there's any problem manipulating data, which will be interepted
+        as a 'skip execution' by the Controller.
+
+        :param data: The dict of dataframes
+        :type data: dict
+        :return:
+        """
+        try:
+            filled_raw_data = self.fill_nan(data)
+            resampled_raw_data = self.resample(filled_raw_data)
+            return self.global_transform(resampled_raw_data)
+        except DataError as e:
+            raise ValueError(str(e))
 
     @abstractmethod
     def resample(self, data):

@@ -72,10 +72,10 @@ def test_weekly_prediction_scheduler_with_a_public_holiday():
     assert not events
 
     events = test_scheduler.get_event(datetime.datetime(2017, 12, 26, 14, 45, tzinfo=pytz.UTC))
-    assert set(events) == {OracleAction.PREDICT, OracleAction.TRAIN}
+    assert events == [OracleAction.TRAIN, OracleAction.PREDICT]
 
     events = test_scheduler.get_event(datetime.datetime(2018, 1, 2, 14, 45, tzinfo=pytz.UTC))
-    assert set(events) == {OracleAction.PREDICT, OracleAction.TRAIN}
+    assert events == [OracleAction.TRAIN, OracleAction.PREDICT]
 
 
 def test_daily_prediction_scheduler():
