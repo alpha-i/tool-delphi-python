@@ -79,9 +79,9 @@ class AbstractOracle(metaclass=ABCMeta):
         raise NotImplementedError
 
     def _preprocess_raw_data(self, data):
-        resampled_raw_data = self.resample(data)
-        resampled_raw_data = self.fill_nan(resampled_raw_data)
-        return self.global_transform(resampled_raw_data)
+        data = self.fill_nan(data)
+        data = self.resample(data)
+        return self.global_transform(data)
 
     @abstractmethod
     def resample(self, data):
