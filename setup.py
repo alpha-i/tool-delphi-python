@@ -13,7 +13,7 @@ setup(
         'pandas',
         'tables',
         'pandas-market-calendars==0.11',
-        'alphai_finance==1.3.1',
+        'alphai_finance==2.0.0',
         'performance_analysis==2.1.7',
         'dateutils==0.6.6',
         'marshmallow==3.0.0b4',
