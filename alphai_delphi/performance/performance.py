@@ -6,12 +6,12 @@ import numpy as np
 import pandas as pd
 from tables import NaturalNameWarning
 
-from performance_analysis.cli import read_oracle_results_from_path, read_oracle_symbol_weights_from_path
-
-from performance_analysis.oracle import (
+from alphai_delphi.performance.oracle import (
     create_oracle_performance_report,
     create_oracle_data_report,
     create_time_series_plot,
+    read_oracle_results_from_path,
+    read_oracle_symbol_weights_from_path
 )
 
 # We want to hide the number of NaturalNameWarning warnings when we format the column names
@@ -21,8 +21,11 @@ warnings.simplefilter(action='ignore', category=NaturalNameWarning)
 ORACLE_RESULTS_MEAN_VECTOR_TEMPLATE = '{}_oracle_results_mean_vector.hdf5'
 ORACLE_RESULTS_COVARIANCE_MATRIX_TEMPLATE = '{}_oracle_results_covariance_matrix.hdf5'
 ORACLE_RESULTS_ACTUALS_TEMPLATE = '{}_oracle_results_actuals.hdf5'
+
+
 METRIC_COLUMNS = ['returns_forecast_mean_vector', 'returns_forecast_covariance_matrix', 'initial_prices',
                   'final_prices', 'returns_actuals']
+
 TIMESTAMP_FORMAT = '%Y%m%d-%H%M%S'
 
 

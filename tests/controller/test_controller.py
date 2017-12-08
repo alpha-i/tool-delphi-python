@@ -13,10 +13,9 @@ from alphai_delphi.controller import Controller, ControllerConfiguration
 from alphai_delphi.data_source import AbstractDataSource
 from alphai_delphi.data_source.hdf5_data_source import StocksHDF5DataSource
 from alphai_delphi.data_source.stochastic_process_data_source import StochasticProcessDataSource
-from alphai_delphi.oracle import AbstractOracle, PredictionResult
 from alphai_delphi.oracle.constant_oracle import ConstantOracle
 from alphai_delphi.oracle.oracle_configuration import OracleConfiguration
-from alphai_delphi.oracle.performance import OraclePerformance
+from alphai_delphi.performance.performance import OraclePerformance
 from alphai_delphi.scheduler import Scheduler
 
 TEST_HDF5FILE_NAME = os.path.join(os.path.dirname(__file__), '..', 'resources', '19990101_19990301_3_stocks.hdf5')
