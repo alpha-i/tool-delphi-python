@@ -6,7 +6,7 @@ setup(
     description='Delphi: Alpha-I Prototype Environment',
     author='Gabriele Alese, Richard Mason, Daniele Murroni',
     author_email='gabriele.alese@alpha-i.co, richard.mason@alpha-i.co, daniele.murroni@alpha-i.co',
-    version='1.0.0',
+    version='1.0.1',
     packages=find_packages(exclude=['doc', 'tests*']),
     install_requires=[
         "numpy",
@@ -18,7 +18,6 @@ setup(
         "alphai-time-series==0.0.4",
         "matplotlib>=1.5.0",
         "seaborn>=0.7.1",
-        "performance_analysis==2.1.7",
         "dateutils==0.6.6",
         "marshmallow==3.0.0b4",
         "marshmallow-enum==1.4.1",
