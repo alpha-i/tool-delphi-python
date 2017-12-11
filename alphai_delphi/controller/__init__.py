@@ -67,8 +67,6 @@ class Controller(AbstractController):
         except ValueError as e:
             logging.error("SKIP prediction. Reason {}".format(e))
 
-
-
     def _record_actual_performance(self, feature_name, current_dt):
         """
 

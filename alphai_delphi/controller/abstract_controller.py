@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
-from alphai_delphi.oracle.performance import OraclePerformance
+from alphai_delphi.performance.performance import OraclePerformance
 
 
 class AbstractController(metaclass=ABCMeta):

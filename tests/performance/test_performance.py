@@ -7,7 +7,7 @@ import pandas as pd
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from alphai_delphi.oracle.performance import OraclePerformance, ORACLE_RESULTS_MEAN_VECTOR_TEMPLATE, \
+from alphai_delphi.performance.performance import OraclePerformance, ORACLE_RESULTS_MEAN_VECTOR_TEMPLATE, \
     ORACLE_RESULTS_COVARIANCE_MATRIX_TEMPLATE, ORACLE_RESULTS_ACTUALS_TEMPLATE, TIMESTAMP_FORMAT
 
 TMP_FOLDER = TemporaryDirectory().name
@@ -67,7 +67,7 @@ class TestOraclePerformance(TestCase):
         assert self.sample_initial_prices.equals(
             self.oracle_perf.metrics.loc[self.sample_target_dt, 'initial_prices'])
 
-    @mock.patch('alphai_delphi.oracle.performance.logging')
+    @mock.patch('alphai_delphi.performance.performance.logging')
     def test_add_final_prices(self, mock_logging):
         self.oracle_perf.add_final_values(self.sample_target_dt, self.sample_final_prices)
         assert mock_logging.error.called
@@ -82,7 +82,7 @@ class TestOraclePerformance(TestCase):
         assert_almost_equal(self.sample_log_returns.values,
                             self.oracle_perf.metrics.loc[self.sample_target_dt, 'returns_actuals'].values)
 
-    @mock.patch('alphai_delphi.oracle.performance.logging')
+    @mock.patch('alphai_delphi.performance.performance.logging')
     def test_get_equity_symbols(self, mock_logging):
         self.oracle_perf.get_symbols(self.sample_target_dt)
         assert mock_logging.error.called
@@ -141,7 +141,7 @@ class TestOraclePerformance(TestCase):
                                                  loc[target_dt, 'returns_forecast_covariance_matrix'])
             assert read_actuals.equals(self.oracle_perf.metrics.loc[target_dt, 'returns_actuals'])
 
-    @mock.patch('alphai_delphi.oracle.performance.logging')
+    @mock.patch('alphai_delphi.performance.performance.logging')
     def test_drop_dt(self, mock_logging):
         self.oracle_perf.add_initial_prices(self.sample_target_dt, self.sample_initial_prices)
         self.oracle_perf.add_prediction(self.sample_target_dt,
