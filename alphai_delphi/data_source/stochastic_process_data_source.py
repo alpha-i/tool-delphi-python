@@ -4,7 +4,11 @@ import pytz
 import pandas_market_calendars as mcal
 from alphai_delphi.data_source.abstract_data_source import AbstractDataSource
 from alphai_time_series.make_series import random_walks
-from alphai_delphi.data_source.synthetic_data_source import _make_ohlcv_dict
+from alphai_delphi.data_source.synthetic_data_source import (
+    _make_ohlcv_dict, 
+    _convert_log_returns_to_prices, 
+    _create_minute_datetime_index
+)
 
 
 class StochasticProcessDataSource(AbstractDataSource):
@@ -60,13 +64,13 @@ class StochasticProcessDataSource(AbstractDataSource):
 
     def _setup_data(self):
         exchange_name = self.config['exchange']
-        time_index = self._create_minute_datetime_index(exchange_name=exchange_name,
+        time_index = _create_minute_datetime_index(exchange_name=exchange_name,
                                                         start_date=self.start,
                                                         end_date=self.end)
         correlation_coeff = 0.1
         offset = correlation_coeff / 5.
         n_series = 10
-        variance = 1 / 1e3
+        variance = 1e-3
         trend_period = -1
         mean_growth = 0
         noise_matrix = np.random.normal(loc=offset, scale=correlation_coeff, size=(n_series, n_series))
@@ -76,9 +80,7 @@ class StochasticProcessDataSource(AbstractDataSource):
         stochastic_process_output = random_walks(n_timesteps=n_timesteps, cov=covariance, trend_period=trend_period,
                                                  mean_growth=mean_growth)
         columns = ["walk_{}".format(clm) for clm in range(n_series)]
-        stochastic_process_prices = pd.DataFrame(data=stochastic_process_output, index=time_index, columns=columns)
+        log_returns = pd.DataFrame(data=stochastic_process_output, index=time_index, columns=columns)
 
-        self._data_dict = _make_ohlcv_dict(stochastic_process_prices)
-
-        # self._data_dict["close"] = stochastic_process_prices
+        self._data_dict = _make_ohlcv_dict(log_returns)
 
