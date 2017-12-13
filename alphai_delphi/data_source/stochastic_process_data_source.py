@@ -4,6 +4,7 @@ import pytz
 import pandas_market_calendars as mcal
 from alphai_delphi.data_source.abstract_data_source import AbstractDataSource
 from alphai_time_series.make_series import random_walks
+from alphai_delphi.data_source.synthetic_data_source import _make_ohlcv_dict
 
 
 class StochasticProcessDataSource(AbstractDataSource):
@@ -77,5 +78,7 @@ class StochasticProcessDataSource(AbstractDataSource):
         columns = ["walk_{}".format(clm) for clm in range(n_series)]
         stochastic_process_prices = pd.DataFrame(data=stochastic_process_output, index=time_index, columns=columns)
 
-        self._data_dict["close"] = stochastic_process_prices
+        self._data_dict = _make_ohlcv_dict(stochastic_process_prices)
+
+        # self._data_dict["close"] = stochastic_process_prices
 
