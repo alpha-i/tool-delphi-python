@@ -34,7 +34,7 @@ class TestStochasticProcessDataSource(TestCase):
         expected_symbols = ['walk_0', 'walk_1', 'walk_2', 'walk_3', 'walk_4', 'walk_5', 'walk_6', 'walk_7', 'walk_8',
                             'walk_9']
 
-        current_datetime = datetime.datetime(1999, 1, 15, 14, 30, tzinfo=pytz.utc)
+        current_datetime = datetime.datetime(1999, 1, 15, 14, 31, tzinfo=pytz.utc)
         interval = datetime.timedelta(days=4)
 
         data_dict = self.data_source.get_data(current_datetime, interval)
@@ -48,7 +48,7 @@ class TestStochasticProcessDataSource(TestCase):
         expected_symbols = ['walk_0', 'walk_1', 'walk_2', 'walk_3', 'walk_4', 'walk_5', 'walk_6', 'walk_7', 'walk_8',
                             'walk_9']
 
-        current_datetime = datetime.datetime(1999, 1, 15, 14, 30, tzinfo=pytz.utc)
+        current_datetime = datetime.datetime(1999, 1, 15, 14, 31, tzinfo=pytz.utc)
 
         data = self.data_source.values_for_symbols_feature_and_time(
             expected_symbols,
@@ -61,7 +61,7 @@ class TestStochasticProcessDataSource(TestCase):
 
         expected_symbols = ['walk_0', 'walk_1']
 
-        current_datetime = datetime.datetime(1999, 1, 15, 14, 30, tzinfo=pytz.utc)
+        current_datetime = datetime.datetime(1999, 1, 15, 14, 31, tzinfo=pytz.utc)
 
         data = self.data_source.values_for_symbols_feature_and_time(
             expected_symbols,

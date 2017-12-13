@@ -48,20 +48,6 @@ class StochasticProcessDataSource(AbstractDataSource):
 
         return values_for_symbols.loc[current_datetime]
 
-    @staticmethod
-    def _create_minute_datetime_index(exchange_name, start_date, end_date):
-        calendar = mcal.get_calendar(exchange_name)
-        schedule = calendar.schedule(start_date, end_date)
-
-        datetime_index = pd.DatetimeIndex([])
-
-        for idx in range(len(schedule)):
-            start_minute = schedule.market_open[idx]  # + timedelta(minutes=1) FIXME should we start at 931 or 930?
-            end_minute = schedule.market_close[idx]
-            datetime_index = datetime_index.append(pd.date_range(start=start_minute, end=end_minute, freq='min'))
-
-        return datetime_index
-
     def _setup_data(self):
         exchange_name = self.config['exchange']
         time_index = _create_minute_datetime_index(exchange_name=exchange_name,
