@@ -1,12 +1,10 @@
 import numpy as np
 import pandas as pd
 import pytz
-import pandas_market_calendars as mcal
 from alphai_delphi.data_source.abstract_data_source import AbstractDataSource
 from alphai_time_series.make_series import random_walks
 from alphai_delphi.data_source.synthetic_data_source import (
     make_ohlcv_dict,
-    convert_log_returns_to_prices,
     create_minute_datetime_index
 )
 
@@ -50,7 +48,7 @@ class StochasticProcessDataSource(AbstractDataSource):
 
     def _setup_data(self):
         exchange_name = self.config['exchange']
-        time_index = _create_minute_datetime_index(exchange_name=exchange_name,
+        time_index = create_minute_datetime_index(exchange_name=exchange_name,
                                                         start_date=self.start,
                                                         end_date=self.end)
         correlation_coeff = 0.1
@@ -68,5 +66,5 @@ class StochasticProcessDataSource(AbstractDataSource):
         columns = ["walk_{}".format(clm) for clm in range(n_series)]
         stochastic_process_prices = pd.DataFrame(data=stochastic_process_output, index=time_index, columns=columns)
 
-        self._data_dict = _make_ohlcv_dict(stochastic_process_prices)
+        self._data_dict = make_ohlcv_dict(stochastic_process_prices)
 
