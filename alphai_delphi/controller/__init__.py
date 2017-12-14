@@ -64,7 +64,7 @@ class Controller(AbstractController):
             self.prediction_results.append(prediction_result)
             self._record_prediction(current_moment, self.oracle.target_feature, prediction_result)
             logging.info("END prediction at {}".format(current_moment))
-        except ValueError as e:
+        except (ValueError, KeyError) as e:
             logging.error("SKIP prediction. Reason {}".format(e))
 
     def _record_actual_performance(self, feature_name, current_dt):
@@ -82,8 +82,9 @@ class Controller(AbstractController):
                 feature_name,
                 current_dt
             )
-            self.performance.add_final_values(current_dt, final_values)
-            self.performance.save_to_hdf5(current_dt)
+            if len(final_values):
+                self.performance.add_final_values(current_dt, final_values)
+                self.performance.save_to_hdf5(current_dt)
             self.performance.drop_dt(current_dt)
 
     def _record_prediction(self, current_datetime, feature_name, prediction_result):
