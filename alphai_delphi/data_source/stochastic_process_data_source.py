@@ -5,9 +5,9 @@ import pandas_market_calendars as mcal
 from alphai_delphi.data_source.abstract_data_source import AbstractDataSource
 from alphai_time_series.make_series import random_walks
 from alphai_delphi.data_source.synthetic_data_source import (
-    _make_ohlcv_dict, 
-    _convert_log_returns_to_prices, 
-    _create_minute_datetime_index
+    make_ohlcv_dict,
+    convert_log_returns_to_prices,
+    create_minute_datetime_index
 )
 
 

@@ -58,7 +58,7 @@ def _make_cos_series(x_array):
     return np.cos(x_array)
 
 
-def _create_minute_datetime_index(exchange_name, start_date, end_date):
+def create_minute_datetime_index(exchange_name, start_date, end_date):
     calendar = mcal.get_calendar(exchange_name)
     schedule = calendar.schedule(start_date, end_date)
 
@@ -100,7 +100,7 @@ def _make_distinct_series(start_date, end_date, n_series, add_zero_and_linear=Fa
     :param n_series: how many sin series do you want
     :return: dataframe with 4 distinct time series data for week days only
     """
-    time_index = _create_minute_datetime_index('NYSE', start_date, end_date)
+    time_index = create_minute_datetime_index('NYSE', start_date, end_date)
     x_array = np.linspace(0, 100, num=len(time_index))
 
     sin_dict = _create_sin_dict(x_array, n_series)
@@ -121,7 +121,7 @@ def _make_distinct_series(start_date, end_date, n_series, add_zero_and_linear=Fa
     return data_frame
 
 
-def _convert_log_returns_to_prices(log_returns):
+def convert_log_returns_to_prices(log_returns):
     """
     based on the dataframe with log returns calculate the prices that will produce the given log-returns
 
@@ -132,7 +132,7 @@ def _convert_log_returns_to_prices(log_returns):
     return initial_price * np.exp(log_returns.cumsum())
 
 
-def _make_ohlcv_dict(dataframe):
+def make_ohlcv_dict(dataframe):
     """
 
     :param dataframe: pandas dataframe
@@ -210,8 +210,8 @@ def create_synthetic_ohlcv(n_sin_series, start_date='20100101', end_date='201001
     """
     log_returns = _make_distinct_series(start_date, end_date, n_series=n_sin_series,
                                         add_zero_and_linear=add_zero_and_linear)
-    prices = _convert_log_returns_to_prices(log_returns)
-    ohlcv_dict = _make_ohlcv_dict(prices)
+    prices = convert_log_returns_to_prices(log_returns)
+    ohlcv_dict = make_ohlcv_dict(prices)
     if add_nan:
         assert n_sin_series >=16, 'If adding nan n_sin_series must be >= 16'
         ohlcv_dict = add_nans(ohlcv_dict)
