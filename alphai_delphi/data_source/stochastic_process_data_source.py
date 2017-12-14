@@ -1,9 +1,12 @@
 import numpy as np
 import pandas as pd
 import pytz
-import pandas_market_calendars as mcal
 from alphai_delphi.data_source.abstract_data_source import AbstractDataSource
 from alphai_time_series.make_series import random_walks
+from alphai_delphi.data_source.synthetic_data_source import (
+    make_ohlcv_dict,
+    create_minute_datetime_index
+)
 
 
 class StochasticProcessDataSource(AbstractDataSource):
@@ -43,23 +46,9 @@ class StochasticProcessDataSource(AbstractDataSource):
 
         return values_for_symbols.loc[current_datetime]
 
-    @staticmethod
-    def _create_minute_datetime_index(exchange_name, start_date, end_date):
-        calendar = mcal.get_calendar(exchange_name)
-        schedule = calendar.schedule(start_date, end_date)
-
-        datetime_index = pd.DatetimeIndex([])
-
-        for idx in range(len(schedule)):
-            start_minute = schedule.market_open[idx]  # + timedelta(minutes=1) FIXME should we start at 931 or 930?
-            end_minute = schedule.market_close[idx]
-            datetime_index = datetime_index.append(pd.date_range(start=start_minute, end=end_minute, freq='min'))
-
-        return datetime_index
-
     def _setup_data(self):
         exchange_name = self.config['exchange']
-        time_index = self._create_minute_datetime_index(exchange_name=exchange_name,
+        time_index = create_minute_datetime_index(exchange_name=exchange_name,
                                                         start_date=self.start,
                                                         end_date=self.end)
         correlation_coeff = 0.1
@@ -77,5 +66,5 @@ class StochasticProcessDataSource(AbstractDataSource):
         columns = ["walk_{}".format(clm) for clm in range(n_series)]
         stochastic_process_prices = pd.DataFrame(data=stochastic_process_output, index=time_index, columns=columns)
 
-        self._data_dict["close"] = stochastic_process_prices
+        self._data_dict = make_ohlcv_dict(stochastic_process_prices)
 
