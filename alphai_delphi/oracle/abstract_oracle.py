@@ -10,19 +10,22 @@ class OracleAction(Enum):
 
 
 class PredictionResult:
-    def __init__(self, mean_vector, covariance_matrix, timestamp):
+    def __init__(self, mean_vector, covariance_matrix, prediction_timestamp, target_timestamp):
         """
 
         :param mean_vector: vector of predicted means
         :type mean_vector: pd.Series
         :param covariance_matrix: covariance matrix
         :type covariance_matrix: pd.DataFrame
-        :param timestamp: timestamp of the predicted date
-        :type timestamp: datetime
+        :param prediction_timestamp: the timestamp when prediction has been made
+        :type prediction_timestamp: datetime
+        :param target_timestamp: timestamp of the target predicted date
+        :type target_timestamp: datetime
         """
         self.covariance_matrix = covariance_matrix
         self.mean_vector = mean_vector
-        self.timestamp = timestamp
+        self.target_timestamp = target_timestamp
+        self.prediction_timestamp = prediction_timestamp
 
     def __repr__(self):
         return "<Prediction result: {}>".format(self.__dict__)

@@ -62,7 +62,7 @@ class Controller(AbstractController):
         try:
             prediction_result = self.oracle.predict(raw_data, current_moment, target_moment)
             self.prediction_results.append(prediction_result)
-            self._record_prediction(current_moment, self.oracle.target_feature, prediction_result)
+            self._record_prediction(self.oracle.target_feature, prediction_result)
             logging.info("END prediction at {}".format(current_moment))
         except ValueError as e:
             logging.error("SKIP prediction. Reason {}".format(e))
@@ -86,8 +86,16 @@ class Controller(AbstractController):
             self.performance.save_to_hdf5(current_dt)
             self.performance.drop_dt(current_dt)
 
-    def _record_prediction(self, current_datetime, feature_name, prediction_result):
-        target_dt = prediction_result.timestamp
+    def _record_prediction(self, feature_name, prediction_result):
+        """
+        :param feature_name:
+        :type feature_name: str
+        :param prediction_result:
+        :type prediction_result: PredictionResult
+        :return:
+        """
+        target_dt = prediction_result.target_timestamp
+        current_datetime = prediction_result.prediction_timestamp
         prediction_symbols = np.array(prediction_result.mean_vector.index)
         initial_values = self.datasource.values_for_symbols_feature_and_time(
             prediction_symbols,

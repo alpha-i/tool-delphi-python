@@ -46,7 +46,7 @@ class ConstantOracle(AbstractOracle):
         mean = data['close'].iloc[-1]
         covariance = pd.DataFrame(data=constant_variance * np.eye(num_symbols), index=symbols, columns=symbols)
 
-        prediction = PredictionResult(mean, covariance, target_timestamp)
+        prediction = PredictionResult(mean, covariance, current_timestamp, target_timestamp)
 
         return prediction
 
