@@ -11,6 +11,7 @@ from alphai_delphi.scheduler import ScheduleException
 class Controller(AbstractController):
 
     def run(self):
+        # loop in all the minute cause the target time can be anything
         for moment, events in self.scheduler:
 
             for action in events:
@@ -57,38 +58,47 @@ class Controller(AbstractController):
         :type datetime.datetime
         :return:
         """
-        self._record_actual_performance(self.oracle.target_feature, current_moment)
+
         logging.info("START prediction at {}".format(current_moment))
         try:
             prediction_result = self.oracle.predict(raw_data, current_moment, target_moment)
             self.prediction_results.append(prediction_result)
-            self._record_prediction(current_moment, self.oracle.target_feature, prediction_result)
+            self._record_prediction(self.oracle.target_feature, prediction_result)
+            self._record_actual_performance(self.oracle.target_feature, prediction_result.target_timestamp)
             logging.info("END prediction at {}".format(current_moment))
         except (ValueError, KeyError) as e:
             logging.error("SKIP prediction. Reason {}".format(e))
 
-    def _record_actual_performance(self, feature_name, current_dt):
+    def _record_actual_performance(self, feature_name, target_datetime):
         """
 
         :param feature_name:
         :type feature_name: str
-        :param current_dt:
-        :type current_dt: datetime.datetime
+        :param target_datetime:
+        :type target_datetime: datetime.datetime
         """
-        if current_dt in self.performance:
-            previous_symbols = self.performance.get_symbols(current_dt)
+        if target_datetime in self.performance:
+            previous_symbols = self.performance.get_symbols(target_datetime)
             final_values = self.datasource.values_for_symbols_feature_and_time(
                 previous_symbols,
                 feature_name,
-                current_dt
+                target_datetime
             )
             if len(final_values):
-                self.performance.add_final_values(current_dt, final_values)
-                self.performance.save_to_hdf5(current_dt)
-            self.performance.drop_dt(current_dt)
+                self.performance.add_final_values(target_datetime, final_values)
+                self.performance.save_to_hdf5(target_datetime)
+            self.performance.drop_dt(target_datetime)
 
-    def _record_prediction(self, current_datetime, feature_name, prediction_result):
-        target_dt = prediction_result.timestamp
+    def _record_prediction(self, feature_name, prediction_result):
+        """
+        :param feature_name:
+        :type feature_name: str
+        :param prediction_result:
+        :type prediction_result: PredictionResult
+        :return:
+        """
+        target_dt = prediction_result.target_timestamp
+        current_datetime = prediction_result.prediction_timestamp
         prediction_symbols = np.array(prediction_result.mean_vector.index)
         initial_values = self.datasource.values_for_symbols_feature_and_time(
             prediction_symbols,
