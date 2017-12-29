@@ -20,6 +20,7 @@ def run_oracle():
     exchange_name = "NYSE"
     data_source_config = {
         "exchange": exchange_name,
+        "data_timezone": "America/New_York",
         "filename": "/Users/tbs19/Documents/Data/Q_20061231_20111231_SP500_adjusted_1m_float32_close_volume_panel.nc",
         "start": datetime.datetime(2006, 12, 31, tzinfo=pytz.utc),
         "end": datetime.datetime(2011, 12, 31, tzinfo=pytz.utc)
@@ -28,14 +29,14 @@ def run_oracle():
     oracle_config = OracleConfiguration(
         {
             "scheduling": {
-                "prediction_horizon": 240,
+                "prediction_horizon": 24,
                 "prediction_frequency":
                     {
                         "frequency_type": "DAILY",
                         "days_offset": 0,
                         "minutes_offset": 15
                     },
-                "prediction_delta": 10,
+                "prediction_delta": 250,
 
                 "training_frequency":
                     {
@@ -43,7 +44,7 @@ def run_oracle():
                         "days_offset": 0,
                         "minutes_offset": 15
                     },
-                "training_delta": 20,
+                "training_delta": 250,
             },
             "oracle": {
                 "constant_variance": 0.1,
