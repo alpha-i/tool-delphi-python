@@ -40,10 +40,12 @@ class ConstantOracle(AbstractOracle):
 
         constant_variance = self.config["constant_variance"]
 
-        symbols = data['close'].columns
+        close_df = data.sel(raw_features='close').to_dataframe()
+
+        symbols = close_df.columns
         num_symbols = len(symbols)
 
-        mean = data['close'].iloc[-1]
+        mean = close_df.iloc[-1]
         covariance = pd.DataFrame(data=constant_variance * np.eye(num_symbols), index=symbols, columns=symbols)
 
         prediction = PredictionResult(mean, covariance, current_timestamp, target_timestamp)
