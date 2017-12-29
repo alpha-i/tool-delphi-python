@@ -29,6 +29,8 @@ class XArrayDataSource(AbstractDataSource):
         current_datetime.replace(tzinfo=None)
         start_datetime = current_datetime - datetime.timedelta(minutes=1)
         end_datetime = current_datetime
-        return self._data.sel(datetime=slice(start_datetime, end_datetime)).get(symbol_list)
+        values = self._data.sel(datetime=slice(start_datetime, end_datetime),
+                                raw_features=feature).to_dataframe()[symbol_list].loc[current_datetime]
+        return values
 
 

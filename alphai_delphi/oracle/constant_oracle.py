@@ -40,7 +40,7 @@ class ConstantOracle(AbstractOracle):
 
         constant_variance = self.config["constant_variance"]
 
-        close_df = data.sel(raw_features='close').to_dataframe()
+        close_df = data.sel(raw_features='close').to_dataframe().drop(columns=['raw_features'])
 
         symbols = close_df.columns
         num_symbols = len(symbols)

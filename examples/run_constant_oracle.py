@@ -56,7 +56,7 @@ def run_oracle():
 
     # these dates need to be within [start, end] of the data source
     simulation_start = datetime.datetime(2009, 5, 1, tzinfo=pytz.utc)
-    simulation_end = datetime.datetime(2009, 6, 1, tzinfo=pytz.utc)
+    simulation_end = datetime.datetime(2009, 5, 14, tzinfo=pytz.utc)
     scheduler = Scheduler(
         simulation_start,
         simulation_end,

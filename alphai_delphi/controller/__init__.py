@@ -86,9 +86,9 @@ class Controller(AbstractController):
         logging.info("START prediction at {}".format(current_moment))
         try:
             prediction_result = self.oracle.predict(raw_data, current_moment, target_moment)
-            # self.prediction_results.append(prediction_result)
-            # self._record_prediction(self.oracle.target_feature, prediction_result)
-            # self._record_actual_performance(self.oracle.target_feature, prediction_result.target_timestamp)
+            self.prediction_results.append(prediction_result)
+            self._record_prediction(self.oracle.target_feature, prediction_result)
+            self._record_actual_performance(self.oracle.target_feature, prediction_result.target_timestamp)
             logging.info("END prediction at {}".format(current_moment))
         except (ValueError, KeyError) as e:
             logging.error("SKIP prediction. Reason {}".format(e))
