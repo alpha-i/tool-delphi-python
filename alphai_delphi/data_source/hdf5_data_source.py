@@ -1,11 +1,27 @@
 import datetime
-
+import time
 import pandas_market_calendars as mcal
 import pytz
 from alphai_finance.data.cleaning import convert_to_utc, select_trading_hours
 from alphai_finance.data.read_from_hdf5 import get_all_table_names_in_hdf5, read_feature_data_dict_from_hdf5
 
 from alphai_delphi.data_source.abstract_data_source import AbstractDataSource
+
+
+def logtime(message=None):
+    def wrap(method):
+        def wrapped_f(*args, **kw):
+            ts = time.time()
+            result = method(*args, **kw)
+            te = time.time()
+            duration = te - ts
+            msg = message if message else method.__name__
+            print("{}: Execution time: {} seconds".format(msg, duration))
+            return result
+
+        return wrapped_f
+
+    return wrap
 
 
 class StocksHDF5DataSource(AbstractDataSource):
@@ -22,6 +38,7 @@ class StocksHDF5DataSource(AbstractDataSource):
     def end(self):
         return self.config["end"]
 
+    @logtime("get_data()")
     def get_data(self, current_datetime, interval):
 
         assert current_datetime.tzinfo == pytz.utc, "Datetime must provided in UTC timezone"
@@ -41,6 +58,7 @@ class StocksHDF5DataSource(AbstractDataSource):
         data_dict = convert_to_utc(data_dict)
         return select_trading_hours(data_dict, self.calendar)
 
+    @logtime("values_for_symbols_feature_and_time()")
     def values_for_symbols_feature_and_time(self, symbol_list, feature, current_datetime):
 
         assert current_datetime.tzinfo == pytz.utc, "Datetime must provided in UTC timezone"

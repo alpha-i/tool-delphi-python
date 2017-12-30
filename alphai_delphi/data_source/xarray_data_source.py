@@ -49,7 +49,9 @@ class XArrayDataSource(AbstractDataSource):
         current_datetime = current_datetime.astimezone(self.data_timezone).replace(tzinfo=None)
         start_datetime = current_datetime - datetime.timedelta(minutes=1)
         end_datetime = current_datetime
-        return self._data.sel(datetime=slice(start_datetime, end_datetime),
-                              raw_features=feature).to_dataframe()[symbol_list].loc[current_datetime]
+        values = self._data.sel(datetime=slice(start_datetime, end_datetime),
+                                raw_features=feature).to_dataframe()[symbol_list].loc[current_datetime]
+        values.name = values.name.tz_localize(self.data_timezone).astimezone('UTC')
+        return values
 
 

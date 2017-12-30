@@ -32,7 +32,7 @@ class Controller(AbstractController):
                         continue
                     self._do_predict(raw_data, moment, target_moment)
 
-        # self.performance.create_oracle_report()
+        self.performance.create_oracle_report()
 
     def get_market_interval(self, moment, oracle_interval):
         """

@@ -7,6 +7,7 @@ import pytz
 from alphai_delphi.oracle.constant_oracle import ConstantOracle
 from alphai_delphi.controller import Controller, ControllerConfiguration
 from alphai_delphi.data_source.stochastic_process_data_source import StochasticProcessDataSource
+from alphai_delphi.data_source.hdf5_data_source import StocksHDF5DataSource
 from alphai_delphi.data_source.xarray_data_source import XArrayDataSource
 from alphai_delphi.scheduler import Scheduler
 from alphai_delphi.oracle.oracle_configuration import OracleConfiguration
@@ -21,11 +22,13 @@ def run_oracle():
     data_source_config = {
         "exchange": exchange_name,
         "data_timezone": "America/New_York",
-        "filename": "/Users/tbs19/Documents/Data/Q_20061231_20111231_SP500_adjusted_1m_float32_close_volume_panel.nc",
+        # "filename": "/Users/tbs19/Documents/Data/Q_20061231_20111231_SP500_adjusted_1m_float32_close_volume_panel.nc",
+        "filename": "/Users/tbs19/Documents/Data/Q_20061231_20111231_SP500_adjusted_1m_float32.hdf5",
         "start": datetime.datetime(2006, 12, 31, tzinfo=pytz.utc),
         "end": datetime.datetime(2011, 12, 31, tzinfo=pytz.utc)
     }
-    datasource = XArrayDataSource(data_source_config)
+    # datasource = XArrayDataSource(data_source_config)
+    datasource = StocksHDF5DataSource(data_source_config)
     oracle_config = OracleConfiguration(
         {
             "scheduling": {
@@ -36,7 +39,7 @@ def run_oracle():
                         "days_offset": 0,
                         "minutes_offset": 15
                     },
-                "prediction_delta": 250,
+                "prediction_delta": 25,
 
                 "training_frequency":
                     {
@@ -44,7 +47,7 @@ def run_oracle():
                         "days_offset": 0,
                         "minutes_offset": 15
                     },
-                "training_delta": 250,
+                "training_delta": 25,
             },
             "oracle": {
                 "constant_variance": 0.1,
