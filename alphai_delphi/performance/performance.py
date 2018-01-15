@@ -31,6 +31,7 @@ TIMESTAMP_FORMAT = '%Y%m%d-%H%M%S'
 
 class OraclePerformance:
     def __init__(self, output_path, run_mode):
+        self.run_mode = run_mode
         self.metrics = pd.DataFrame(columns=METRIC_COLUMNS)
         self._output_path = output_path
         self.output_mean_vector_filepath = \
@@ -104,7 +105,7 @@ class OraclePerformance:
     def create_oracle_report(self):
         results_path = self._output_path
         output_path = self._output_path
-        oracle_results = read_oracle_results_from_path(results_path)
+        oracle_results = read_oracle_results_from_path(results_path, run_mode=self.run_mode)
         oracle_symbol_weights = read_oracle_symbol_weights_from_path(results_path)
         create_oracle_performance_report(oracle_results, output_path, oracle_symbol_weights)
         create_oracle_data_report(oracle_results, output_path)
