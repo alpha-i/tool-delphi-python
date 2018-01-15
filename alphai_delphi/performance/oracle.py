@@ -663,13 +663,17 @@ def create_time_series_comparison_figure(time_series_list, series_name_list, y_l
     return fig
 
 
-def get_results_file(path, ends_with, required=True):
+def get_results_file(path, ends_with, required=True, starts_with=None):
     all_files_in_path = os.listdir(path)
     matching_file_list = []
 
     for file in all_files_in_path:
-        if file.endswith(ends_with):
-            matching_file_list.append(file)
+        if starts_with:
+            if file.endswith(ends_with) and file.startswith(starts_with):
+                matching_file_list.append(file)
+        else:
+            if file.endswith(ends_with):
+                matching_file_list.append(file)
 
     if len(matching_file_list) == 0 and not required:
         return None
@@ -680,11 +684,11 @@ def get_results_file(path, ends_with, required=True):
     return os.path.join(path, matching_file_list[0])
 
 
-def read_oracle_results_from_path(results_path):
-    oracle_results_mean_vector_filepath = get_results_file(results_path, ORACLE_MEAN_VECTOR_ENDSWITH_TEMPLATE)
+def read_oracle_results_from_path(results_path, run_mode=None):
+    oracle_results_mean_vector_filepath = get_results_file(results_path, ORACLE_MEAN_VECTOR_ENDSWITH_TEMPLATE, starts_with=run_mode)
     oracle_results_covariance_matrix_filepath = get_results_file(results_path,
-                                                                 ORACLE_COVARIANCE_MATRIX_ENDSWITH_TEMPLATE)
-    oracle_results_actuals_filepath = get_results_file(results_path, ORACLE_ACTUALS_ENDSWITH_TEMPLATE)
+                                                                 ORACLE_COVARIANCE_MATRIX_ENDSWITH_TEMPLATE, starts_with=run_mode)
+    oracle_results_actuals_filepath = get_results_file(results_path, ORACLE_ACTUALS_ENDSWITH_TEMPLATE, starts_with=run_mode)
 
     oracle_results = read_oracle_results_files(oracle_results_mean_vector_filepath,
                                                oracle_results_covariance_matrix_filepath,
