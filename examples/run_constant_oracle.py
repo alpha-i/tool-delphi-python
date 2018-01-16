@@ -22,13 +22,13 @@ def run_oracle():
     data_source_config = {
         "exchange": exchange_name,
         "data_timezone": "America/New_York",
-        # "filename": "/Users/tbs19/Documents/Data/Q_20061231_20111231_SP500_adjusted_1m_float32_close_volume_panel.nc",
-        "filename": "/Users/tbs19/Documents/Data/Q_20061231_20111231_SP500_adjusted_1m_float32.hdf5",
+        "filename": "/Users/tbs19/Documents/Data/Q_20061231_20111231_SP500_adjusted_1m_float32_close_volume_panel.nc",
+        # "filename": "/Users/tbs19/Documents/Data/Q_20061231_20111231_SP500_adjusted_1m_float32.hdf5",
         "start": datetime.datetime(2006, 12, 31, tzinfo=pytz.utc),
         "end": datetime.datetime(2011, 12, 31, tzinfo=pytz.utc)
     }
-    # datasource = XArrayDataSource(data_source_config)
-    datasource = StocksHDF5DataSource(data_source_config)
+    datasource = XArrayDataSource(data_source_config)
+    # datasource = StocksHDF5DataSource(data_source_config)
     oracle_config = OracleConfiguration(
         {
             "scheduling": {
