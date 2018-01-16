@@ -38,33 +38,33 @@ class ConstantOracle(AbstractOracle):
 
     def predict(self, data, current_timestamp, target_timestamp):
 
-        constant_variance = self.config["constant_variance"]
-
-        close_df = data.sel(raw_features='close').to_dataframe().drop(columns=['raw_features'])
-
-        symbols = close_df.columns
-        num_symbols = len(symbols)
-
-        mean = close_df.iloc[-1]
-        mean.name = mean.name.tz_localize('America/New_York').astimezone('UTC')
-
-        covariance = pd.DataFrame(data=constant_variance * np.eye(num_symbols), index=symbols, columns=symbols)
-
-        prediction = PredictionResult(mean, covariance, current_timestamp, target_timestamp)
-
-        return prediction
-
         # constant_variance = self.config["constant_variance"]
         #
-        # symbols = data['close'].columns
+        # close_df = data.sel(raw_features='close').to_dataframe().drop(labels=["raw_features"], axis=1)
+        #
+        # symbols = close_df.columns
         # num_symbols = len(symbols)
         #
-        # mean = data['close'].iloc[-1]
+        # mean = close_df.iloc[-1]
+        # mean.name = mean.name.tz_localize('America/New_York').astimezone('UTC')
+        #
         # covariance = pd.DataFrame(data=constant_variance * np.eye(num_symbols), index=symbols, columns=symbols)
         #
         # prediction = PredictionResult(mean, covariance, current_timestamp, target_timestamp)
         #
         # return prediction
+
+        constant_variance = self.config["constant_variance"]
+
+        symbols = data['close'].columns
+        num_symbols = len(symbols)
+
+        mean = data['close'].iloc[-1]
+        covariance = pd.DataFrame(data=constant_variance * np.eye(num_symbols), index=symbols, columns=symbols)
+
+        prediction = PredictionResult(mean, covariance, current_timestamp, target_timestamp)
+
+        return prediction
 
     def get_delta_for_event(self, event):
 

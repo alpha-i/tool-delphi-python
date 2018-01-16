@@ -4,6 +4,8 @@ import pytz
 import time
 
 from alphai_delphi.data_source.abstract_data_source import AbstractDataSource
+from alphai_finance.data.cleaning import convert_to_utc, select_trading_hours
+import pandas_market_calendars as mcal
 
 
 def logtime(message=None):
@@ -28,6 +30,7 @@ class XArrayDataSource(AbstractDataSource):
         self.data_timezone = pytz.timezone(self.config['data_timezone'])
         self._data = xr.open_dataset(self.config["filename"])
         self.symbols = self._data.data_vars.keys()
+        self.calendar = mcal.get_calendar(self.config["exchange"])
 
     def start(self):
         return self.config["start"]
@@ -38,10 +41,24 @@ class XArrayDataSource(AbstractDataSource):
     @logtime("get_data()")
     def get_data(self, current_datetime, interval):
         assert current_datetime.tzinfo == pytz.utc, "Datetime must provided in UTC timezone"
-        current_datetime = current_datetime.astimezone(self.data_timezone).replace(tzinfo=None)
+        # current_datetime = current_datetime.astimezone(self.data_timezone).replace(tzinfo=None)
         start_datetime = current_datetime - interval
         end_datetime = current_datetime
-        return self._data.sel(datetime=slice(start_datetime, end_datetime))
+
+        exchange_start_datetime = start_datetime.astimezone(self.data_timezone).replace(tzinfo=None)
+        exchange_end_datetime = end_datetime.astimezone(self.data_timezone).replace(tzinfo=None)
+
+        # xray_data = self._data.sel(datetime=slice(start_datetime, end_datetime))
+        xray_data = self._data.sel(datetime=slice(exchange_start_datetime, exchange_end_datetime))
+        data_dict = {
+            'close': xray_data.sel(raw_features='close').to_dataframe().drop(labels=["raw_features"], axis=1),
+            'volume': xray_data.sel(raw_features='volume').to_dataframe().drop(labels=["raw_features"], axis=1)
+
+        }
+        data_dict = convert_to_utc(data_dict)
+        return select_trading_hours(data_dict, self.calendar)
+        # return data_dict
+        # return self._data.sel(datetime=slice(start_datetime, end_datetime))
 
     @logtime("values_for_symbols_feature_and_time()")
     def values_for_symbols_feature_and_time(self, symbol_list, feature, current_datetime):

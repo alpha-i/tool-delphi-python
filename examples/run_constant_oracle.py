@@ -22,8 +22,8 @@ def run_oracle():
     data_source_config = {
         "exchange": exchange_name,
         "data_timezone": "America/New_York",
-        "filename": "/Users/tbs19/Documents/Data/Q_20061231_20111231_SP500_adjusted_1m_float32_close_volume_panel.nc",
-        # "filename": "/Users/tbs19/Documents/Data/Q_20061231_20111231_SP500_adjusted_1m_float32.hdf5",
+        "filename": "/home/sbalan/Documents/QQ_data/Q_20061231_20111231_SP500_adjusted_1m_float32_close_volume_panel.nc",
+        # "filename": "/home/sbalan/Documents/QQ_data/Q_20061231_20111231_SP500_adjusted_1m_float32.hdf5",
         "start": datetime.datetime(2006, 12, 31, tzinfo=pytz.utc),
         "end": datetime.datetime(2011, 12, 31, tzinfo=pytz.utc)
     }
@@ -39,7 +39,7 @@ def run_oracle():
                         "days_offset": 0,
                         "minutes_offset": 15
                     },
-                "prediction_delta": 25,
+                "prediction_delta": 250,
 
                 "training_frequency":
                     {
@@ -47,7 +47,7 @@ def run_oracle():
                         "days_offset": 0,
                         "minutes_offset": 15
                     },
-                "training_delta": 25,
+                "training_delta": 250,
             },
             "oracle": {
                 "constant_variance": 0.1,
@@ -59,8 +59,10 @@ def run_oracle():
     oracle = ConstantOracle(oracle_config)
 
     # these dates need to be within [start, end] of the data source
-    simulation_start = datetime.datetime(2009, 5, 1, tzinfo=pytz.utc)
-    simulation_end = datetime.datetime(2009, 5, 14, tzinfo=pytz.utc)
+    # simulation_start = datetime.datetime(2009, 5, 1, tzinfo=pytz.utc)
+    # simulation_end = datetime.datetime(2009, 5, 14, tzinfo=pytz.utc)
+    simulation_start = datetime.datetime(2009, 1, 1, tzinfo=pytz.utc)
+    simulation_end = datetime.datetime(2009, 3, 1, tzinfo=pytz.utc)
     scheduler = Scheduler(
         simulation_start,
         simulation_end,
