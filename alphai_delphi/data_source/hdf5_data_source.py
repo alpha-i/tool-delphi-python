@@ -6,6 +6,7 @@ from alphai_finance.data.cleaning import convert_to_utc, select_trading_hours
 from alphai_finance.data.read_from_hdf5 import get_all_table_names_in_hdf5, read_feature_data_dict_from_hdf5
 
 from alphai_delphi.data_source.abstract_data_source import AbstractDataSource
+import logging
 
 
 def logtime(message=None):
@@ -16,7 +17,8 @@ def logtime(message=None):
             te = time.time()
             duration = te - ts
             msg = message if message else method.__name__
-            print("{}: Execution time: {} seconds".format(msg, duration))
+            # print("{}: Execution time: {} seconds".format(msg, duration))
+            logging.info("{}: Execution time: {} seconds".format(msg, duration))
             return result
 
         return wrapped_f

@@ -2,6 +2,7 @@ import datetime
 import xarray as xr
 import pytz
 import time
+import logging
 
 from alphai_delphi.data_source.abstract_data_source import AbstractDataSource
 from alphai_finance.data.cleaning import convert_to_utc, select_trading_hours
@@ -16,7 +17,8 @@ def logtime(message=None):
             te = time.time()
             duration = te - ts
             msg = message if message else method.__name__
-            print("{}: Execution time: {} seconds".format(msg, duration))
+            # print("{}: Execution time: {} seconds".format(msg, duration))
+            logging.info("{}: Execution time: {} seconds".format(msg, duration))
             return result
 
         return wrapped_f
