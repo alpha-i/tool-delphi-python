@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 
 import numpy as np
 
@@ -16,8 +17,11 @@ class Controller(AbstractController):
 
             for action in events:
 
-                interval = self.oracle.get_delta_for_event(action)
+                oracle_interval = self.oracle.get_delta_for_event(action)
+
+                interval = self.get_market_interval(moment, oracle_interval)
                 raw_data = self.datasource.get_data(moment, interval)
+
                 if action == OracleAction.TRAIN:
                     self._do_train(raw_data, moment)
                 elif action == OracleAction.PREDICT:
@@ -29,6 +33,23 @@ class Controller(AbstractController):
                     self._do_predict(raw_data, moment, target_moment)
 
         self.performance.create_oracle_report()
+
+    def get_market_interval(self, moment, oracle_interval):
+        """
+        Given a moment and an interval from the oracle, it calculates a correct business day intervall
+        :param datetime.datetime moment:
+        :param datetime.timedelta oracle_interval:
+
+        :return datetime.timedelta:
+        """
+
+        schedule_start = moment - oracle_interval * 5
+        full_schedule = self.scheduler.calendar.schedule(schedule_start, moment)
+        new_day = full_schedule.index[-oracle_interval.days]
+        moment_tz = moment.tz
+        new_interval = moment - moment_tz.localize(new_day)
+
+        return new_interval
 
     def _do_train(self, raw_data, current_moment):
         """

@@ -61,73 +61,98 @@ class DummyDataSource(AbstractDataSource):
 
 
 class TestController(unittest.TestCase):
+
+    def test_get_market_interval(self):
+        exchange_name = "NYSE"
+        simulation_start = datetime.datetime(1999, 1, 10, tzinfo=pytz.utc)
+        simulation_end = datetime.datetime(1999, 2, 10, tzinfo=pytz.utc)
+        temp_dir = TemporaryDirectory()
+
+        oracle_config = {
+            "scheduling": {
+                "prediction_horizon": 240,
+                "prediction_frequency":
+                    {
+                        "frequency_type": 'DAILY',
+                        "days_offset": 0,
+                        "minutes_offset": 15
+                    },
+                "prediction_delta": 240,
+
+                "training_frequency":
+                    {
+                        "frequency_type": 'WEEKLY',
+                        "days_offset": 0,
+                        "minutes_offset": 15
+                    },
+                "training_delta": 480,
+            },
+            "oracle": {
+                "constant_variance": 0.1,
+                "past_horizon": datetime.timedelta(days=7),
+                "target_feature": 'close'
+            }
+        }
+
+        controller = self._create_dummy_controller(exchange_name, simulation_end, simulation_start, temp_dir,
+                                                   oracle_config)
+        test_list = [
+            dict(moment=pd.Timestamp("2018-01-29", tz=pytz.utc),
+                 oracle_interval=datetime.timedelta(days=7),
+                 expected_date=pd.Timestamp("2018-01-19", tz=pytz.utc)),
+
+            dict(moment=pd.Timestamp("2017-12-27", tz=pytz.utc),
+                 oracle_interval=datetime.timedelta(days=7),
+                 expected_date=pd.Timestamp("2017-12-18", tz=pytz.utc)),
+
+            dict(moment=pd.Timestamp("2018-01-27", tz=pytz.utc),
+                 oracle_interval=datetime.timedelta(days=200),
+                 expected_date=pd.Timestamp("2017-04-12", tz=pytz.utc)),
+        ]
+
+        for test in test_list:
+            moment = test['moment']
+            oracle_interval = test['oracle_interval']
+            expected_date = test['expected_date']
+
+            new_interval = controller.get_market_interval(moment, oracle_interval)
+            new_date = moment - new_interval
+            assert expected_date == new_date
+
     def test_controller_with_dummy_data_source(self):
         exchange_name = "NYSE"
         simulation_start = datetime.datetime(1999, 1, 10, tzinfo=pytz.utc)
         simulation_end = datetime.datetime(1999, 2, 10, tzinfo=pytz.utc)
+        temp_dir = TemporaryDirectory()
 
-        data_source_config = {
-            "filename": TEST_HDF5FILE_NAME,
-            "exchange": exchange_name,
-            "start": datetime.datetime(1999, 1, 11, tzinfo=pytz.utc),
-            "end": datetime.datetime(1999, 1, 11, tzinfo=pytz.utc)
+        oracle_config = {
+            "scheduling": {
+                "prediction_horizon": 240,
+                "prediction_frequency":
+                    {
+                        "frequency_type": 'DAILY',
+                        "days_offset": 0,
+                        "minutes_offset": 15
+                    },
+                "prediction_delta": 240,
+
+                "training_frequency":
+                    {
+                        "frequency_type": 'WEEKLY',
+                        "days_offset": 0,
+                        "minutes_offset": 15
+                    },
+                "training_delta": 480,
+            },
+            "oracle": {
+                "constant_variance": 0.1,
+                "past_horizon": datetime.timedelta(days=7),
+                "target_feature": 'close'
+            }
         }
 
-        datasource = DummyDataSource(data_source_config)
-        oracle_config = OracleConfiguration(
-            {
-                "scheduling": {
-                    "prediction_horizon": 240,
-                    "prediction_frequency":
-                        {
-                            "frequency_type": 'DAILY',
-                            "days_offset": 0,
-                            "minutes_offset": 15
-                        },
-                    "prediction_delta": 240,
-
-                    "training_frequency":
-                        {
-                            "frequency_type": 'WEEKLY',
-                            "days_offset": 0,
-                            "minutes_offset": 15
-                        },
-                    "training_delta": 480,
-                },
-                "oracle": {
-                    "constant_variance": 0.1,
-                    "past_horizon": datetime.timedelta(days=7),
-                    "target_feature": 'close'
-                }
-            }
-        )
-
-        oracle = ConstantOracle(oracle_config)
-        scheduler = Scheduler(simulation_start,
-                              simulation_end,
-                              exchange_name,
-                              oracle.prediction_frequency,
-                              oracle.training_frequency,
-                              oracle.prediction_horizon
-                              )
-
-        controller_configuration = ControllerConfiguration({
-            'start_date': simulation_start.strftime('%Y-%m-%d'),
-            'end_date': simulation_end.strftime('%Y-%m-%d')
-        })
-
-        temp_dir = TemporaryDirectory()
-        oracle_performance = OraclePerformance(
-            temp_dir.name, 'test'
-        )
-
-        controller = Controller(
-            configuration=controller_configuration,
-            oracle=oracle,
-            scheduler=scheduler,
-            datasource=datasource,
-            performance=oracle_performance
-        )
+        controller = self._create_dummy_controller( exchange_name, simulation_end, simulation_start,
+                                                    temp_dir, oracle_config)
 
         controller.run()
 
@@ -137,6 +162,8 @@ class TestController(unittest.TestCase):
         assert len(
             glob.glob(temp_dir.name + "/*hdf5")
         ) == 3
+
+
 
     # to run this test use add the parameter --runslow to the pytest invoker
     @pytest.mark.slow
@@ -289,3 +316,36 @@ class TestController(unittest.TestCase):
         # Check if files have been writter
         assert len(glob.glob(temp_dir.name + "/*hdf5")) == 3
 
+    def _create_dummy_controller(self, exchange_name, simulation_end, simulation_start, temp_dir, oracle_config):
+        data_source_config = {
+            "filename": TEST_HDF5FILE_NAME,
+            "exchange": exchange_name,
+            "start": datetime.datetime(1999, 1, 11, tzinfo=pytz.utc),
+            "end": datetime.datetime(1999, 1, 11, tzinfo=pytz.utc)
+        }
+        datasource = DummyDataSource(data_source_config)
+        oracle_config = OracleConfiguration(oracle_config)
+
+        oracle = ConstantOracle(oracle_config)
+        scheduler = Scheduler(simulation_start,
+                              simulation_end,
+                              exchange_name,
+                              oracle.prediction_frequency,
+                              oracle.training_frequency,
+                              oracle.prediction_horizon
+                              )
+        controller_configuration = ControllerConfiguration({
+            'start_date': simulation_start.strftime('%Y-%m-%d'),
+            'end_date': simulation_end.strftime('%Y-%m-%d')
+        })
+        oracle_performance = OraclePerformance(
+            temp_dir.name, 'test'
+        )
+        controller = Controller(
+            configuration=controller_configuration,
+            oracle=oracle,
+            scheduler=scheduler,
+            datasource=datasource,
+            performance=oracle_performance
+        )
+        return controller
