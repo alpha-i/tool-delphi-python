@@ -46,8 +46,8 @@ class Controller(AbstractController):
         schedule_start = moment - oracle_interval * 5
         full_schedule = self.scheduler.calendar.schedule(schedule_start, moment)
         new_day = full_schedule.index[-oracle_interval.days]
-        moment_tz = moment.tz
-        new_interval = moment - moment_tz.localize(new_day)
+
+        new_interval = moment.date() - new_day.date()
 
         return new_interval
 

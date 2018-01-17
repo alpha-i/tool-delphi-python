@@ -35,8 +35,8 @@ class StocksHDF5DataSource(AbstractDataSource):
         exchange_start_datetime = start_datetime.astimezone(self.data_timezone).replace(tzinfo=None)
         exchange_end_datetime = end_datetime.astimezone(self.data_timezone).replace(tzinfo=None)
 
-        data_dict = read_feature_data_dict_from_hdf5(symbols, exchange_start_datetime, exchange_end_datetime,
-                                                     self.filename, self.data_timezone)
+        data_dict = read_feature_data_dict_from_hdf5(symbols, exchange_start_datetime - datetime.timedelta(days=1),
+                                                     exchange_end_datetime, self.filename, self.data_timezone)
 
         data_dict = convert_to_utc(data_dict)
         return select_trading_hours(data_dict, self.calendar)
