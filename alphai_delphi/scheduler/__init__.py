@@ -26,6 +26,7 @@ class Scheduler(AbstractScheduler):
         self.start_date = start_date
         self.end_date = end_date
         self.exchange_name = exchange_name
+        self.calendar = calendar.get_calendar(self.exchange_name)
 
         self.prediction_frequency = prediction_frequency
         self.training_frequency = training_frequency
@@ -60,11 +61,10 @@ class Scheduler(AbstractScheduler):
         :type action: OracleAction
         :return:
         """
-        exchange_calendar = calendar.get_calendar(self.exchange_name)
-        exchange_schedule = exchange_calendar.schedule(self.start_date, self.end_date)
+        exchange_schedule = self.calendar.schedule(self.start_date, self.end_date)
         if schedule.frequency_type == SchedulingFrequencyType.WEEKLY:
             scheduled_days = self._get_scheduled_days(
-                exchange_calendar, schedule.days_offset, self.start_date,
+                self.calendar, schedule.days_offset, self.start_date,
                 self.end_date)
 
             for day in scheduled_days:
@@ -73,14 +73,14 @@ class Scheduler(AbstractScheduler):
                 self.schedule[scheduled_time].append(action)
 
         elif schedule.frequency_type == SchedulingFrequencyType.DAILY:
-            market_days = exchange_calendar.valid_days(self.start_date, self.end_date)
+            market_days = self.calendar.valid_days(self.start_date, self.end_date)
             for day in market_days:
                 market_open = exchange_schedule.loc[day, "market_open"]
                 scheduled_time = market_open + datetime.timedelta(minutes=schedule.minutes_offset)
                 self.schedule[scheduled_time].append(action)
 
         elif schedule.frequency_type == SchedulingFrequencyType.MINUTE:
-            for day in exchange_calendar.valid_days(self.start_date, self.end_date):
+            for day in self.calendar.valid_days(self.start_date, self.end_date):
                 market_open = exchange_schedule.loc[day, "market_open"]
                 market_close = exchange_schedule.loc[day, "market_close"]
                 minutes = rrule.rrule(rrule.MINUTELY, dtstart=market_open, until=market_close)
