@@ -32,7 +32,6 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            sudo apt-get install libhdf5-serial-dev
             pip install -r dev-requirements.txt
 
       - save_cache:
