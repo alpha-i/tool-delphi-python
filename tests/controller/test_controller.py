@@ -99,15 +99,15 @@ class TestController(unittest.TestCase):
         test_list = [
             dict(moment=pd.Timestamp("2018-01-29", tz=pytz.utc),
                  oracle_interval=datetime.timedelta(days=7),
-                 expected_date=pd.Timestamp("2018-01-19", tz=pytz.utc)),
+                 expected_date=pd.Timestamp("2018-01-18", tz=pytz.utc)),
 
             dict(moment=pd.Timestamp("2017-12-27", tz=pytz.utc),
                  oracle_interval=datetime.timedelta(days=7),
-                 expected_date=pd.Timestamp("2017-12-18", tz=pytz.utc)),
+                 expected_date=pd.Timestamp("2017-12-17", tz=pytz.utc)),
 
             dict(moment=pd.Timestamp("2018-01-27", tz=pytz.utc),
                  oracle_interval=datetime.timedelta(days=200),
-                 expected_date=pd.Timestamp("2017-04-12", tz=pytz.utc)),
+                 expected_date=pd.Timestamp("2017-04-11", tz=pytz.utc)),
         ]
 
         for test in test_list:
@@ -162,8 +162,6 @@ class TestController(unittest.TestCase):
         assert len(
             glob.glob(temp_dir.name + "/*hdf5")
         ) == 3
-
-
 
     # to run this test use add the parameter --runslow to the pytest invoker
     @pytest.mark.slow
