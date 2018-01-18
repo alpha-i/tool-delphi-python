@@ -37,6 +37,9 @@ class Controller(AbstractController):
     def get_market_interval(self, moment, oracle_interval):
         """
         Given a moment and an interval from the oracle, it calculates a correct business day intervall
+        It always add 1 day more to the interval to prevent any missing data on the datasource.
+        It's safe to give one day more.
+
         :param datetime.datetime moment:
         :param datetime.timedelta oracle_interval:
 
@@ -49,7 +52,7 @@ class Controller(AbstractController):
 
         new_interval = moment.date() - new_day.date()
 
-        return new_interval
+        return new_interval + timedelta(days=1)
 
     def _do_train(self, raw_data, current_moment):
         """

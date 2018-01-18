@@ -13,6 +13,7 @@ from alphai_delphi.controller import Controller, ControllerConfiguration
 from alphai_delphi.data_source import AbstractDataSource
 from alphai_delphi.data_source.hdf5_data_source import StocksHDF5DataSource
 from alphai_delphi.data_source.stochastic_process_data_source import StochasticProcessDataSource
+from alphai_delphi.data_source.xarray_data_source import XArrayDataSource
 from alphai_delphi.oracle.constant_oracle import ConstantOracle
 from alphai_delphi.oracle.oracle_configuration import OracleConfiguration
 from alphai_delphi.performance.performance import OraclePerformance
@@ -99,15 +100,15 @@ class TestController(unittest.TestCase):
         test_list = [
             dict(moment=pd.Timestamp("2018-01-29", tz=pytz.utc),
                  oracle_interval=datetime.timedelta(days=7),
-                 expected_date=pd.Timestamp("2018-01-19", tz=pytz.utc)),
+                 expected_date=pd.Timestamp("2018-01-18", tz=pytz.utc)),
 
             dict(moment=pd.Timestamp("2017-12-27", tz=pytz.utc),
                  oracle_interval=datetime.timedelta(days=7),
-                 expected_date=pd.Timestamp("2017-12-18", tz=pytz.utc)),
+                 expected_date=pd.Timestamp("2017-12-17", tz=pytz.utc)),
 
             dict(moment=pd.Timestamp("2018-01-27", tz=pytz.utc),
                  oracle_interval=datetime.timedelta(days=200),
-                 expected_date=pd.Timestamp("2017-04-12", tz=pytz.utc)),
+                 expected_date=pd.Timestamp("2017-04-11", tz=pytz.utc)),
         ]
 
         for test in test_list:
@@ -151,8 +152,8 @@ class TestController(unittest.TestCase):
             }
         }
 
-        controller = self._create_dummy_controller( exchange_name, simulation_end, simulation_start,
-                                                    temp_dir, oracle_config)
+        controller = self._create_dummy_controller(exchange_name, simulation_end, simulation_start,
+                                                   temp_dir, oracle_config)
 
         controller.run()
 
@@ -162,8 +163,6 @@ class TestController(unittest.TestCase):
         assert len(
             glob.glob(temp_dir.name + "/*hdf5")
         ) == 3
-
-
 
     # to run this test use add the parameter --runslow to the pytest invoker
     @pytest.mark.slow
@@ -251,6 +250,82 @@ class TestController(unittest.TestCase):
             "end": datetime.datetime(1999, 3, 1, tzinfo=pytz.utc)
         }
         datasource = StochasticProcessDataSource(data_source_config)
+
+        oracle_config = OracleConfiguration(
+            {
+                "scheduling": {
+                    "prediction_horizon": 240,
+                    "prediction_frequency":
+                        {
+                            "frequency_type": "DAILY",
+                            "days_offset": 0,
+                            "minutes_offset": 15
+                        },
+                    "prediction_delta": 10,
+
+                    "training_frequency":
+                        {
+                            "frequency_type": "WEEKLY",
+                            "days_offset": 0,
+                            "minutes_offset": 15
+                        },
+                    "training_delta": 20,
+                },
+                "oracle": {
+                    "constant_variance": 0.1,
+                    "past_horizon": datetime.timedelta(days=7),
+                    "target_feature": "close"
+                }
+            }
+        )
+
+        oracle = ConstantOracle(oracle_config)
+
+        # these dates need to be within [start, end] of the data source
+        simulation_start = datetime.datetime(1999, 1, 10, tzinfo=pytz.utc)
+        simulation_end = datetime.datetime(1999, 2, 10, tzinfo=pytz.utc)
+        scheduler = Scheduler(simulation_start,
+                              simulation_end,
+                              exchange_name,
+                              oracle.prediction_frequency,
+                              oracle.training_frequency,
+                              oracle.prediction_horizon
+                              )
+
+        controller_configuration = ControllerConfiguration({
+            'start_date': simulation_start.strftime('%Y-%m-%d'),
+            'end_date': simulation_end.strftime('%Y-%m-%d')
+        })
+
+        temp_dir = TemporaryDirectory()
+        oracle_performance = OraclePerformance(
+            temp_dir.name, 'test'
+        )
+
+        controller = Controller(
+            configuration=controller_configuration,
+            oracle=oracle,
+            scheduler=scheduler,
+            datasource=datasource,
+            performance=oracle_performance
+        )
+
+        controller.run()
+
+        # Check if files have been writter
+        assert len(glob.glob(temp_dir.name + "/*hdf5")) == 3
+
+    @pytest.mark.slow
+    def test_controller_with_xarray(self):
+        exchange_name = "NYSE"
+        data_source_config = {
+            "exchange": exchange_name,
+            "data_timezone": "America/New_York",
+            "filename": "tests/resources/19990101_19990301_3_stocks.nc",
+            "start": datetime.datetime(2006, 12, 31, tzinfo=pytz.utc),
+            "end": datetime.datetime(2011, 12, 31, tzinfo=pytz.utc)
+        }
+        datasource = XArrayDataSource(data_source_config)
 
         oracle_config = OracleConfiguration(
             {
