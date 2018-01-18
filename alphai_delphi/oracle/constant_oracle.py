@@ -37,7 +37,6 @@ class ConstantOracle(AbstractOracle):
         pass
 
     def predict(self, data, current_timestamp, target_timestamp):
-
         constant_variance = self.config["constant_variance"]
 
         symbols = data['close'].columns

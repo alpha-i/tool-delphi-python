@@ -22,6 +22,8 @@ setup(
         "marshmallow==3.0.0b4",
         "marshmallow-enum==1.4.1",
         "psycopg2==2.7.3.1",
+        "xarray",
+        "netcdf4"
     ],
     dependency_links=[
         'https://pypi.fury.io/zNzsk7gQsYY335HLzW9x/alpha-i/alphai_finance/',

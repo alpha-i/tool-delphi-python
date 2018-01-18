@@ -6,6 +6,7 @@ from alphai_finance.data.cleaning import convert_to_utc, select_trading_hours
 from alphai_finance.data.read_from_hdf5 import get_all_table_names_in_hdf5, read_feature_data_dict_from_hdf5
 
 from alphai_delphi.data_source.abstract_data_source import AbstractDataSource
+from alphai_delphi.data_source.utils import logtime
 
 
 class StocksHDF5DataSource(AbstractDataSource):
@@ -22,6 +23,7 @@ class StocksHDF5DataSource(AbstractDataSource):
     def end(self):
         return self.config["end"]
 
+    @logtime
     def get_data(self, current_datetime, interval):
 
         assert current_datetime.tzinfo == pytz.utc, "Datetime must provided in UTC timezone"
@@ -41,6 +43,7 @@ class StocksHDF5DataSource(AbstractDataSource):
         data_dict = convert_to_utc(data_dict)
         return select_trading_hours(data_dict, self.calendar)
 
+    @logtime
     def values_for_symbols_feature_and_time(self, symbol_list, feature, current_datetime):
 
         assert current_datetime.tzinfo == pytz.utc, "Datetime must provided in UTC timezone"
