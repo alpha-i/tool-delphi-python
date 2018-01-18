@@ -1,5 +1,22 @@
+"""
+Scrip to convert easily a HDF5 file (in our usual format) to a XArray source file
+
+Usage: python convert_hdf5_to_xarray_netcdf.py <input path.hdf5> <output_path.nc>
+"""
+
+import argparse
+import logging
+import os
+
 import pandas as pd
 import xarray as xr
+
+logging.basicConfig(level=logging.INFO)
+
+parser = argparse.ArgumentParser(description='Process a HDF5 file and convert it to a xarray')
+
+parser.add_argument('input', metavar='input', type=str, help='the input file path')
+parser.add_argument('output', metavar='output', type=str, help='The destination file path')
 
 
 def read_symbol_data_frame_from_hdf5(symbol, store):
@@ -8,25 +25,33 @@ def read_symbol_data_frame_from_hdf5(symbol, store):
     return data_frame
 
 
-hdf5_file_name = "../tests/resources/19990101_19990301_3_stocks.hdf5"
-hdf5_store = pd.HDFStore(hdf5_file_name)
+if __name__ == '__main__':
+    args = parser.parse_args()
+    HDF5_FILE_NAME = args.input
+    XRAY_FILE_NAME = args.output
 
-symbols = [table[1:] for table in hdf5_store.keys()]
+    if not os.path.exists(HDF5_FILE_NAME):
+        raise Exception("No such file :%s", HDF5_FILE_NAME)
 
-symbol_data_dict = {}
-try:
-    for symbol in symbols:
-        symbol_data_dict[symbol] = read_symbol_data_frame_from_hdf5(symbol, hdf5_store)
-except Exception as e:
-    hdf5_store.close()
-    raise e
-hdf5_store.close()
+    logging.info("Opening input file: %s", HDF5_FILE_NAME)
+    hdf5_store = pd.HDFStore(HDF5_FILE_NAME)
 
-panel = pd.Panel(symbol_data_dict)
+    symbols = [
+        table[1:] for table in hdf5_store.keys()
+    ]
 
-panel.minor_axis.name = "raw_feature"
+    symbol_data_dict = {}
+    try:
+        for symbol in symbols:
+            symbol_data_dict[symbol] = read_symbol_data_frame_from_hdf5(symbol, hdf5_store)
+    finally:
+        hdf5_store.close()
 
-xray = xr.Dataset(panel)
+    panel = pd.Panel(symbol_data_dict)
+    panel.minor_axis.name = "raw_feature"
+    xray = xr.Dataset(panel)
 
-xray_file_name = "../tests/resources/19990101_19990301_3_stocks.nc"
-xray.to_netcdf(xray_file_name)
+    logging.info("Writing output file: %s", XRAY_FILE_NAME)
+    xray.to_netcdf(XRAY_FILE_NAME)
+    xray.close()
+    logging.info("File converted successfully!")
