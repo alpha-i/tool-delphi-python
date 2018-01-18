@@ -1,13 +1,12 @@
-import os
 import logging
-
-import numpy as np
-import pandas as pd
-
-from scipy.optimize import minimize_scalar
+import os
 
 import matplotlib
 matplotlib.use('Agg')
+
+import numpy as np
+import pandas as pd
+from scipy.optimize import minimize_scalar
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
@@ -306,7 +305,6 @@ def neg_log_likelihood(cov_factor, truth, forecast, inv_cov):
 
 
 def calculate_chi_squared_from_inv_cov(diff_vector, inv_cov):
-
     temp_matrix = np.dot(diff_vector.T, inv_cov)
     return np.dot(temp_matrix, diff_vector)
 
@@ -502,7 +500,6 @@ def _make_df_dict(oracle_results):
         for i in range(oracle_results.shape[0]):
 
             if symbol in oracle_results['returns_actuals'][i].index:
-
                 time_stamps.append(oracle_results['returns_actuals'].index[i])
                 returns_actual.append(oracle_results['returns_actuals'][i][symbol])
                 returns_forecast_mean.append(oracle_results['returns_forecast_mean_vector'][i][symbol])
@@ -532,7 +529,7 @@ def create_time_series_plot(oracle_results, output_path):
         for pid, (symbol, df) in enumerate(dict_of_df.items()):
             dicts_for_page[symbol] = df
 
-            if len(dicts_for_page) >= 2 or pid == len(dict_of_df)-1:
+            if len(dicts_for_page) >= 2 or pid == len(dict_of_df) - 1:
                 fig, axes = plt.subplots(nrows=2, ncols=1, figsize=(11.69, 8.27), sharex=False)
                 for i, (symb_page, df_page) in enumerate(dicts_for_page.items()):
                     df_page.index = pd.to_datetime(df_page.index, format="%Y%m%d-%H%M%S")
@@ -685,10 +682,13 @@ def get_results_file(path, ends_with, required=True, starts_with=None):
 
 
 def read_oracle_results_from_path(results_path, run_mode=None):
-    oracle_results_mean_vector_filepath = get_results_file(results_path, ORACLE_MEAN_VECTOR_ENDSWITH_TEMPLATE, starts_with=run_mode)
+    oracle_results_mean_vector_filepath = get_results_file(results_path, ORACLE_MEAN_VECTOR_ENDSWITH_TEMPLATE,
+                                                           starts_with=run_mode)
     oracle_results_covariance_matrix_filepath = get_results_file(results_path,
-                                                                 ORACLE_COVARIANCE_MATRIX_ENDSWITH_TEMPLATE, starts_with=run_mode)
-    oracle_results_actuals_filepath = get_results_file(results_path, ORACLE_ACTUALS_ENDSWITH_TEMPLATE, starts_with=run_mode)
+                                                                 ORACLE_COVARIANCE_MATRIX_ENDSWITH_TEMPLATE,
+                                                                 starts_with=run_mode)
+    oracle_results_actuals_filepath = get_results_file(results_path, ORACLE_ACTUALS_ENDSWITH_TEMPLATE,
+                                                       starts_with=run_mode)
 
     oracle_results = read_oracle_results_files(oracle_results_mean_vector_filepath,
                                                oracle_results_covariance_matrix_filepath,

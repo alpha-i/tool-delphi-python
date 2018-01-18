@@ -1,29 +1,12 @@
 import datetime
-import xarray as xr
+
+import pandas_market_calendars as mcal
 import pytz
-import time
-import logging
+import xarray as xr
+from alphai_finance.data.cleaning import convert_to_utc, select_trading_hours
 
 from alphai_delphi.data_source.abstract_data_source import AbstractDataSource
-from alphai_finance.data.cleaning import convert_to_utc, select_trading_hours
-import pandas_market_calendars as mcal
-
-
-def logtime(message=None):
-    def wrap(method):
-        def wrapped_f(*args, **kw):
-            ts = time.time()
-            result = method(*args, **kw)
-            te = time.time()
-            duration = te - ts
-            msg = message if message else method.__name__
-            # print("{}: Execution time: {} seconds".format(msg, duration))
-            logging.info("{}: Execution time: {} seconds".format(msg, duration))
-            return result
-
-        return wrapped_f
-
-    return wrap
+from alphai_delphi.data_source.utils import logtime
 
 
 class XArrayDataSource(AbstractDataSource):
@@ -40,7 +23,7 @@ class XArrayDataSource(AbstractDataSource):
     def end(self):
         return self.config["end"]
 
-    @logtime("get_data()")
+    @logtime
     def get_data(self, current_datetime, interval):
         assert current_datetime.tzinfo == pytz.utc, "Datetime must provided in UTC timezone"
         start_datetime = current_datetime - interval
@@ -58,7 +41,7 @@ class XArrayDataSource(AbstractDataSource):
         data_dict = convert_to_utc(data_dict)
         return select_trading_hours(data_dict, self.calendar)
 
-    @logtime("values_for_symbols_feature_and_time()")
+    @logtime
     def values_for_symbols_feature_and_time(self, symbol_list, feature, current_datetime):
         assert current_datetime.tzinfo == pytz.utc, "Datetime must provided in UTC timezone"
         current_datetime = current_datetime.astimezone(self.data_timezone).replace(tzinfo=None)
@@ -69,4 +52,5 @@ class XArrayDataSource(AbstractDataSource):
         values.name = values.name.tz_localize(self.data_timezone).astimezone('UTC')
         return values
 
-
+    def __del__(self):
+        self._data.close()
