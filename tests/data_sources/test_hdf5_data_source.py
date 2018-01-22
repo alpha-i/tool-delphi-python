@@ -13,7 +13,6 @@ class TestHDF5DataProvider(TestCase):
 
     @classmethod
     def setUpClass(cls):
-
         filename = os.path.join(os.path.dirname(__file__), '..', 'resources', '19990101_19990301_3_stocks.hdf5')
 
         cls.config = {
@@ -27,15 +26,12 @@ class TestHDF5DataProvider(TestCase):
         cls.data_source = StocksHDF5DataSource(cls.config)
 
     def test_start(self):
-
         assert self.config["start"] == self.data_source.start()
 
     def test_end(self):
-
         assert self.config["end"] == self.data_source.end()
 
     def test_get_data(self):
-
         expected_symbols = ['AMZN', 'BAX', 'CSCO']
 
         current_datetime = datetime.datetime(1999, 1, 15, 14, 30, tzinfo=pytz.utc)
@@ -68,7 +64,7 @@ class TestHDF5DataProvider(TestCase):
 
         assert isinstance(data, pd.Series)
         assert set(data.index) == set(expected_symbols)
-        np.testing.assert_almost_equal(list(data.values), [70.19, np.nan,  20.81])
+        np.testing.assert_almost_equal(list(data.values), [70.19, np.nan, 20.81])
 
         expected_symbols = ['AMZN', 'BAX']
 
@@ -84,7 +80,11 @@ class TestHDF5DataProvider(TestCase):
         assert set(data.index) == set(expected_symbols)
         np.testing.assert_almost_equal(list(data.values), [70.19, np.nan])
 
+    def test_cached_values(self):
+        current_datetime = datetime.datetime(1999, 1, 15, 14, 30, tzinfo=pytz.utc)
+        interval = datetime.timedelta(days=4)
+        _ = self.data_source.get_data(current_datetime, interval)
 
+        assert self.data_source._data_cache
 
-
-
+        assert not self.data_source.interval_in_cache(datetime.datetime(1990, 1, 1), datetime.datetime(1999, 3, 1))
