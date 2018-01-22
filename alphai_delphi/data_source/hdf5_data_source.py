@@ -47,7 +47,7 @@ class StocksHDF5DataSource(AbstractDataSource):
         data_start_time = exchange_start_datetime - datetime.timedelta(days=1)
         data_end_time = exchange_end_datetime
 
-        if not self._data_cache or not self.interval_in_cache(data_start_time, data_end_time):
+        if not self.interval_in_cache(data_start_time, data_end_time):
             logging.debug("Interval was NOT found in cache: %s - %s", data_start_time, data_end_time)
             self._data_cache = self.preload_year(data_start_time, data_end_time)
         else:
