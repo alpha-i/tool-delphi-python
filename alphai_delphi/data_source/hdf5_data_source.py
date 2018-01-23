@@ -89,7 +89,9 @@ class StocksHDF5DataSource(AbstractDataSource):
 
         assert current_datetime.tzinfo == pytz.utc, "Datetime must provided in UTC timezone"
 
-        data = self._extract_data(symbol_list, current_datetime - datetime.timedelta(minutes=1), current_datetime)
+        # we want to fetch prices for _every_ symbol in the dataset
+        # so that we end up with a returns_actuals file as complete as possible
+        data = self._extract_data(self.symbols, current_datetime - datetime.timedelta(minutes=1), current_datetime)
         try:
             values_for_features = data[feature]
         except KeyError as e:
