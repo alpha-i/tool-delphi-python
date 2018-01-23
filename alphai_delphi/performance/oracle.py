@@ -76,9 +76,22 @@ def create_oracle_performance_report(oracle_results, output_path, oracle_symbol_
     n_total_extreme_samples = 0
     absolute_binary_accumulator = 0
 
-    inv_covariance_matrices = compute_covariance_inverses(oracle_results)
-    logging.info("Computing optimal covariance matrix")
-    cov_factor = optimise_covariance(oracle_results, inv_covariance_matrices)
+    valid_covariances = check_validity_of_covariances(oracle_results)
+
+    if valid_covariances:
+        inv_covariance_matrices = compute_covariance_inverses(oracle_results)
+        logging.info("Attempting to compute optimal covariance matrix")
+        cov_factor = optimise_covariance(oracle_results, inv_covariance_matrices)
+    else:
+        cov_factor = 1
+        inv_covariance_matrices = []
+        for i in range(n_samples):
+            date = oracle_results.index[i]
+            forecast = oracle_results.returns_forecast_mean_vector[date].values
+            n_predictions = len(forecast)
+            diag_matrix = np.eye(n_predictions)
+            inv_covariance_matrices.append(diag_matrix)
+            oracle_results.returns_forecast_covariance_matrix[date] = diag_matrix
 
     logging.info("Evaluating likelihoods")
     for i in range(n_samples):
@@ -500,10 +513,16 @@ def _make_df_dict(oracle_results):
         for i in range(oracle_results.shape[0]):
 
             if symbol in oracle_results['returns_actuals'][i].index:
+
                 time_stamps.append(oracle_results['returns_actuals'].index[i])
                 returns_actual.append(oracle_results['returns_actuals'][i][symbol])
                 returns_forecast_mean.append(oracle_results['returns_forecast_mean_vector'][i][symbol])
-                returns_variance.append(oracle_results['returns_forecast_covariance_matrix'][i][symbol][symbol])
+                covariance_matrix = oracle_results['returns_forecast_covariance_matrix'][i]
+                if isinstance(covariance_matrix, (np.ndarray, np.generic)):
+                    variance = 1.0
+                else:
+                    variance = covariance_matrix[symbol][symbol]
+                returns_variance.append(variance)
 
         temp_dict = {'time_stamp': time_stamps, 'returns_actual': returns_actual,
                      "returns_forecast_mean": returns_forecast_mean, "returns_variance": returns_variance}
@@ -747,3 +766,26 @@ def extract_matching_timestamps(df, reference_a, reference_b):
             logging.warning('Incomplete prediction. The following timestamp will be ignored: {}'.format(str(timestamp)))
 
     return matching_timestamps
+
+
+def check_validity_of_covariances(oracle_results):
+
+    valid_covariances = True
+
+    n_samples = len(oracle_results)
+    for i in range(n_samples):
+        date = oracle_results.index[i]
+        covariance = oracle_results.returns_forecast_covariance_matrix[date]
+
+        forecast = oracle_results.returns_forecast_mean_vector[date].dropna().values
+
+        n_predict = len(forecast)
+        cov_size = covariance.shape
+
+        if n_predict != cov_size[0] or n_predict != cov_size[1]:
+            valid_covariances = False
+            logging.info("Invalid covariance matrix found:"
+                         "shape {} c.f. prediction length {}".format(cov_size, n_predict))
+            break
+
+    return valid_covariances
