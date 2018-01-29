@@ -92,7 +92,7 @@ class Scheduler(AbstractScheduler):
         exchange_schedule = exchange_calendar.schedule(self.start_date, self.end_date)
         target = moment + interval
 
-        while not exchange_calendar.open_at_time(exchange_schedule, target):
+        while not exchange_calendar.open_at_time(exchange_schedule, target, include_close=True):
             target += datetime.timedelta(days=1)
             if target > self.end_date:
                 raise ScheduleException("Target outside of scheduling window")
