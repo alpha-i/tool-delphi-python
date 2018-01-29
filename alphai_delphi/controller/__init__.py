@@ -103,14 +103,15 @@ class Controller(AbstractController):
         """
         if target_datetime in self.performance:
             previous_symbols = self.performance.get_symbols(target_datetime)
-            final_values = self.datasource.values_for_symbols_feature_and_time(
-                previous_symbols,
-                feature_name,
-                target_datetime
-            )
-            if len(final_values):
-                self.performance.add_final_values(target_datetime, final_values)
-                self.performance.save_to_hdf5(target_datetime)
+            if previous_symbols is not np.nan:
+                final_values = self.datasource.values_for_symbols_feature_and_time(
+                    previous_symbols,
+                    feature_name,
+                    target_datetime
+                )
+                if len(final_values):
+                    self.performance.add_final_values(target_datetime, final_values)
+                    self.performance.save_to_hdf5(target_datetime)
             self.performance.drop_dt(target_datetime)
 
     def _record_prediction(self, feature_name, prediction_result):
