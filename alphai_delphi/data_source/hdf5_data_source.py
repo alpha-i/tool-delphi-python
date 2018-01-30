@@ -13,6 +13,8 @@ from alphai_delphi.data_source.utils import logtime
 
 HDF5Cache = namedtuple('HDF5Cache', 'start end content')
 
+logger = logging.getLogger(__name__)
+
 
 class StocksHDF5DataSource(AbstractDataSource):
     def __init__(self, configuration):
@@ -48,10 +50,10 @@ class StocksHDF5DataSource(AbstractDataSource):
         data_end_time = exchange_end_datetime
 
         if not self.interval_in_cache(data_start_time, data_end_time):
-            logging.debug("Interval was NOT found in cache: %s - %s", data_start_time, data_end_time)
+            logger.debug("Interval was NOT found in cache: %s - %s", data_start_time, data_end_time)
             self._data_cache = self.preload_year(data_start_time, data_end_time)
         else:
-            logging.debug("Interval between %s and %s was found in cache", data_start_time, data_end_time)
+            logger.debug("Interval between %s and %s was found in cache", data_start_time, data_end_time)
 
         data_dict = {
             key: self._data_cache.content[key][data_start_time:data_end_time][symbols]
@@ -70,7 +72,7 @@ class StocksHDF5DataSource(AbstractDataSource):
         preload_start = start_time - dateutils.relativedelta(months=2)  # because who knows?
         preload_end = end_time + dateutils.relativedelta(months=10)
 
-        logging.debug("Preloading %s - %s", preload_start, preload_end)
+        logger.debug("Preloading %s - %s", preload_start, preload_end)
         cache = HDF5Cache(
             start=preload_start,
             end=preload_end,

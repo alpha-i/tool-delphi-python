@@ -8,6 +8,8 @@ from alphai_delphi.controller.controller_configuration import ControllerConfigur
 from alphai_delphi.oracle import OracleAction
 from alphai_delphi.scheduler import ScheduleException
 
+logger = logging.getLogger(__name__)
+
 
 class Controller(AbstractController):
 
@@ -28,7 +30,7 @@ class Controller(AbstractController):
                     try:
                         target_moment = self.scheduler.get_first_valid_target(moment, self.oracle.prediction_horizon)
                     except ScheduleException as e:
-                        logging.debug(e)
+                        logger.debug(e)
                         continue
                     self._do_predict(raw_data, moment, target_moment)
 
@@ -63,12 +65,12 @@ class Controller(AbstractController):
         :param current_moment:
         :type current_moment: datetime.datetime
         """
-        logging.info("START training at {}".format(current_moment))
+        logger.info("START training at {}".format(current_moment))
         try:
             self.oracle.train(raw_data, current_moment)
-            logging.info("END training at {}".format(current_moment))
+            logger.info("END training at {}".format(current_moment))
         except ValueError as e:
-            logging.error("SKIP training. Reason: {}".format(e))
+            logger.error("SKIP training. Reason: {}".format(e))
 
     def _do_predict(self, raw_data, current_moment, target_moment):
         """
@@ -83,15 +85,15 @@ class Controller(AbstractController):
         :return:
         """
 
-        logging.info("START prediction at {}".format(current_moment))
+        logger.info("START prediction at {}".format(current_moment))
         try:
             prediction_result = self.oracle.predict(raw_data, current_moment, target_moment)
             self.prediction_results.append(prediction_result)
             self._record_prediction(self.oracle.target_feature, prediction_result)
             self._record_actual_performance(self.oracle.target_feature, prediction_result.target_timestamp)
-            logging.info("END prediction at {}".format(current_moment))
+            logger.info("END prediction at {}".format(current_moment))
         except (ValueError, KeyError) as e:
-            logging.error("SKIP prediction. Reason {}".format(e))
+            logger.error("SKIP prediction. Reason {}".format(e))
 
     def _record_actual_performance(self, feature_name, target_datetime):
         """
