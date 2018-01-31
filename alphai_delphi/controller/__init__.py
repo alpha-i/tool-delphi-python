@@ -1,5 +1,6 @@
 import logging
 from datetime import timedelta
+from datetime import datetime
 
 import numpy as np
 
@@ -12,20 +13,22 @@ logger = logging.getLogger(__name__)
 
 
 class Controller(AbstractController):
+    def __init__(self, configuration, oracle, datasource, scheduler, performance):
+        super().__init__(configuration, oracle, datasource, scheduler, performance)
+        self.elapsed_time = None
 
     def run(self):
-        # loop in all the minute cause the target time can be anything
+        self.start_time = datetime.now()
+        logger.info("%s run started at %s", self.name, self.start_time)
         for moment, events in self.scheduler:
-
             for action in events:
-
                 oracle_interval = self.oracle.get_delta_for_event(action)
-
                 interval = self.get_market_interval(moment, oracle_interval)
                 raw_data = self.datasource.get_data(moment, interval)
 
                 if action == OracleAction.TRAIN:
                     self._do_train(raw_data, moment)
+
                 elif action == OracleAction.PREDICT:
                     try:
                         target_moment = self.scheduler.get_first_valid_target(moment, self.oracle.prediction_horizon)
@@ -33,8 +36,13 @@ class Controller(AbstractController):
                         logger.debug(e)
                         continue
                     self._do_predict(raw_data, moment, target_moment)
+                    self.prediction_moments.append(moment)
+        self.end_time = datetime.now()
+        self.elapsed_time = self.end_time - self.start_time
+        logger.info("%s finished at %s. Took %s", self.name, self.end_time, self.elapsed_time)
 
         self.performance.create_oracle_report()
+        self.print_run_summary()
 
     def get_market_interval(self, moment, oracle_interval):
         """
@@ -134,3 +142,13 @@ class Controller(AbstractController):
         )
         self.performance.add_prediction(target_dt, prediction_result.mean_vector, prediction_result.covariance_matrix)
         self.performance.add_initial_prices(target_dt, initial_values)
+
+    def print_run_summary(self):
+        print("**************************")
+        print("**************************")
+        print("*** RUN OF {} FINISHED ***".format(self.name))
+        print("From {} to {}".format(self.simulation_start, self.simulation_end))
+        print("Time elapsed: {}".format(self.elapsed_time))
+        print("Prediction moments: {}".format(self.prediction_moments))
+        print("**************************")
+        print("**************************")

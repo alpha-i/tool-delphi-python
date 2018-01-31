@@ -24,6 +24,13 @@ class AbstractController(metaclass=ABCMeta):
         self.performance = performance
         self.prediction_results = []
 
+        self.name = self.performance.run_mode
+        self.start_time = None
+        self.end_time = None
+        self.simulation_start = self.scheduler.start_date
+        self.simulation_end = self.scheduler.end_date
+        self.prediction_moments = []
+
     @abstractmethod
     def run(self):
         raise NotImplementedError
