@@ -41,10 +41,10 @@ class Scheduler(AbstractScheduler):
         for schedule_day in sorted(self.schedule.keys()):
             yield schedule_day, list(self.schedule[schedule_day])
 
-    def _get_scheduled_days(self, calendar, offset, start_date, end_date):
+    def _get_scheduled_days(self, exchange_calendar, offset, start_date, end_date):
         week_days = filter(lambda x: x.weekday() == offset,
                            rrule.rrule(rrule.DAILY, dtstart=start_date, until=end_date))
-        valid_days = calendar.valid_days(start_date, end_date)
+        valid_days = exchange_calendar.valid_days(start_date, end_date)
 
         result = []
         for day in week_days:

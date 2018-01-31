@@ -103,6 +103,7 @@ class OraclePerformance:
                 self.output_actuals_filepath, target_dt_key)
 
     def create_oracle_report(self):
+        logger.info("Creating performance report...")
         results_path = self._output_path
         output_path = self._output_path
         oracle_results = read_oracle_results_from_path(results_path, run_mode=self.run_mode)
@@ -110,6 +111,7 @@ class OraclePerformance:
         create_oracle_performance_report(oracle_results, output_path, oracle_symbol_weights)
         create_oracle_data_report(oracle_results, output_path)
         create_time_series_plot(oracle_results, output_path)
+        logger.info("Performance report finished.")
 
     def drop_dt(self, target_dt):
         if target_dt not in self.metrics.index:
