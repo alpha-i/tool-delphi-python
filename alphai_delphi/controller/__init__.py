@@ -38,7 +38,7 @@ class Controller(AbstractController):
                     prediction_result = self._do_predict(raw_data, prediction_moment, target_moment)
                     if prediction_result:
                         self.prediction_moments.append(
-                            (prediction_moment, prediction_result.prediction_timestamp, target_moment)
+                            (prediction_moment, prediction_result.prediction_timestamp, prediction_result.target_timestamp)
                         )
         self.end_time = datetime.now()
         self.elapsed_time = self.end_time - self.start_time
@@ -156,7 +156,7 @@ class Controller(AbstractController):
         print("From {} to {}".format(self.simulation_start, self.simulation_end))
         print("Time elapsed: {}".format(self.elapsed_time))
         print("Prediction moments: ")
-        print("{0:<50} {1:<50}".format("Prediction moment", "Prediction simulation moment", "Prediction target"))
+        print("{0:<50} {1:<50} {2:<50}".format("Prediction moment", "Prediction simulation moment", "Prediction target"))
         for item in self.prediction_moments:
             print("{0:<50} {1:<50} {2:<50}".format(str(item[0]), str(item[1]), str(item[2])))
         print("**************************")
