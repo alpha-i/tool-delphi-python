@@ -20,23 +20,23 @@ class Controller(AbstractController):
     def run(self):
         self.start_time = datetime.now()
         logger.info("%s run started at %s", self.name, self.start_time)
-        for moment, events in self.scheduler:
+        for prediction_moment, events in self.scheduler:
             for action in events:
                 oracle_interval = self.oracle.get_delta_for_event(action)
-                interval = self.get_market_interval(moment, oracle_interval)
-                raw_data = self.datasource.get_data(moment, interval)
+                interval = self.get_market_interval(prediction_moment, oracle_interval)
+                raw_data = self.datasource.get_data(prediction_moment, interval)
 
                 if action == OracleAction.TRAIN:
-                    self._do_train(raw_data, moment)
+                    self._do_train(raw_data, prediction_moment)
 
                 elif action == OracleAction.PREDICT:
                     try:
-                        target_moment = self.scheduler.get_first_valid_target(moment, self.oracle.prediction_horizon)
+                        target_moment = self.scheduler.get_first_valid_target(prediction_moment, self.oracle.prediction_horizon)
                     except ScheduleException as e:
                         logger.debug(e)
                         continue
-                    self._do_predict(raw_data, moment, target_moment)
-                    self.prediction_moments.append(moment)
+                    self._do_predict(raw_data, prediction_moment, target_moment)
+                    self.prediction_moments.append((prediction_moment, target_moment))
         self.end_time = datetime.now()
         self.elapsed_time = self.end_time - self.start_time
         logger.info("%s finished at %s. Took %s", self.name, self.end_time, self.elapsed_time)
@@ -149,6 +149,9 @@ class Controller(AbstractController):
         print("*** RUN OF {} FINISHED ***".format(self.name))
         print("From {} to {}".format(self.simulation_start, self.simulation_end))
         print("Time elapsed: {}".format(self.elapsed_time))
-        print("Prediction moments: {}".format(self.prediction_moments))
+        print("Prediction moments: ")
+        print("{0:<50} {1:<50}".format("Prediction timestamp", "Prediction target"))
+        for item in self.prediction_moments:
+            print("{0:<50} {1:<50}".format(str(item[0]), str(item[1])))
         print("**************************")
         print("**************************")
