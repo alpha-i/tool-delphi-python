@@ -35,8 +35,11 @@ class Controller(AbstractController):
                     except ScheduleException as e:
                         logger.debug(e)
                         continue
-                    self._do_predict(raw_data, prediction_moment, target_moment)
-                    self.prediction_moments.append((prediction_moment, target_moment))
+                    prediction_result = self._do_predict(raw_data, prediction_moment, target_moment)
+                    if prediction_result:
+                        self.prediction_moments.append(
+                            (prediction_moment, prediction_result.prediction_timestamp, target_moment)
+                        )
         self.end_time = datetime.now()
         self.elapsed_time = self.end_time - self.start_time
         logger.info("%s finished at %s. Took %s", self.name, self.end_time, self.elapsed_time)
@@ -102,6 +105,9 @@ class Controller(AbstractController):
             logger.info("END prediction at {}".format(current_moment))
         except (ValueError, KeyError) as e:
             logger.error("SKIP prediction. Reason {}".format(e))
+            return None
+        else:
+            return prediction_result
 
     def _record_actual_performance(self, feature_name, target_datetime):
         """
@@ -150,8 +156,8 @@ class Controller(AbstractController):
         print("From {} to {}".format(self.simulation_start, self.simulation_end))
         print("Time elapsed: {}".format(self.elapsed_time))
         print("Prediction moments: ")
-        print("{0:<50} {1:<50}".format("Prediction timestamp", "Prediction target"))
+        print("{0:<50} {1:<50}".format("Prediction moment", "Prediction simulation moment", "Prediction target"))
         for item in self.prediction_moments:
-            print("{0:<50} {1:<50}".format(str(item[0]), str(item[1])))
+            print("{0:<50} {1:<50} {2:<50}".format(str(item[0]), str(item[1]), str(item[2])))
         print("**************************")
         print("**************************")
