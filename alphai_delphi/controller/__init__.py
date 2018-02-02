@@ -154,9 +154,10 @@ class Controller(AbstractController):
         print("**************************")
         print("*** RUN OF {} FINISHED ***".format(self.name))
         print("From {} to {}".format(self.simulation_start, self.simulation_end))
+        print("Symbols: for every calendar month, we select the 400 symbols with the largest cumulative volume traded over the previous 30 days")
         print("Time elapsed: {}".format(self.elapsed_time))
         print("Prediction moments: ")
-        print("{0:<50} {1:<50} {2:<50}".format("Prediction moment", "Prediction simulation moment", "Prediction target"))
+        print("{0:<50} {1:<50} {2:<50}".format("Prediction moment", "Prediction Window Start", "Prediction Window End"))
         for item in self.prediction_moments:
             print("{0:<50} {1:<50} {2:<50}".format(str(item[0]), str(item[1]), str(item[2])))
         print("**************************")
