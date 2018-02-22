@@ -80,7 +80,7 @@ class Controller(AbstractController):
         try:
             self.oracle.train(raw_data, current_moment)
             logger.info("END training at {}".format(current_moment))
-        except ValueError as e:
+        except Exception as e:
             logger.error("SKIP training. Reason: {}".format(e))
 
     def _do_predict(self, raw_data, current_moment, target_moment):
@@ -103,7 +103,7 @@ class Controller(AbstractController):
             self._record_prediction(self.oracle.target_feature, prediction_result)
             self._record_actual_performance(self.oracle.target_feature, prediction_result.target_timestamp)
             logger.info("END prediction at {}".format(current_moment))
-        except (ValueError, KeyError) as e:
+        except Exception as e:
             logger.error("SKIP prediction. Reason {}".format(e))
             return None
         else:
