@@ -6,7 +6,7 @@ setup(
     description='Delphi: Alpha-I Prototype Environment',
     author='Gabriele Alese, Richard Mason, Daniele Murroni',
     author_email='gabriele.alese@alpha-i.co, richard.mason@alpha-i.co, daniele.murroni@alpha-i.co',
-    version='1.1.7',
+    version='1.1.8',
     packages=find_packages(exclude=['doc', 'tests*']),
     install_requires=[
         "numpy",
