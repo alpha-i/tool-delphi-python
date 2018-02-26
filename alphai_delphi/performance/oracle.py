@@ -605,13 +605,19 @@ def calculate_weighted_correlation_coefficient(truth, forecast, oracle_symbol_we
     def cov(x, y, w):
         """Weighted Covariance"""
         m = np.average(x, weights=w)
-        return np.sum(w * (x - m) * (y - m)) / np.sum(w)
+        result = np.sum(w * (x - m) * (y - m)) / np.sum(w)
+        return result
 
     def corr(x, y, w):
         """Weighted Correlation"""
         return cov(x, y, w) / np.sqrt(cov(x, x, w) * cov(y, y, w))
 
-    return corr(truth, forecast, oracle_symbol_weights)
+    if len(truth) > 0:
+        correlation = corr(truth, forecast, oracle_symbol_weights)
+    else:
+        correlation = np.nan
+
+    return correlation
 
 
 def extract_weight_array(predicted_symbols, oracle_symbol_weights):
