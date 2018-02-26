@@ -41,10 +41,10 @@ class Scheduler(AbstractScheduler):
         for schedule_day in sorted(self.schedule.keys()):
             yield schedule_day, list(self.schedule[schedule_day])
 
-    def _get_scheduled_days(self, calendar, offset, start_date, end_date):
+    def _get_scheduled_days(self, exchange_calendar, offset, start_date, end_date):
         week_days = filter(lambda x: x.weekday() == offset,
                            rrule.rrule(rrule.DAILY, dtstart=start_date, until=end_date))
-        valid_days = calendar.valid_days(start_date, end_date)
+        valid_days = exchange_calendar.valid_days(start_date, end_date)
 
         result = []
         for day in week_days:
@@ -92,7 +92,7 @@ class Scheduler(AbstractScheduler):
         exchange_schedule = exchange_calendar.schedule(self.start_date, self.end_date)
         target = moment + interval
 
-        while not exchange_calendar.open_at_time(exchange_schedule, target):
+        while not exchange_calendar.open_at_time(exchange_schedule, target, include_close=True):
             target += datetime.timedelta(days=1)
             if target > self.end_date:
                 raise ScheduleException("Target outside of scheduling window")

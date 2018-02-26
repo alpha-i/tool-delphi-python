@@ -22,6 +22,10 @@ from alphai_delphi.scheduler import Scheduler
 TEST_HDF5FILE_NAME = os.path.join(os.path.dirname(__file__), '..', 'resources', '19990101_19990301_3_stocks.hdf5')
 TEMPORARY_DIRECTORY = TemporaryDirectory()
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
 
 class DummyDataSource(AbstractDataSource):
     """

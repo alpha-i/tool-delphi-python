@@ -1,5 +1,6 @@
 import logging
 from datetime import timedelta
+from datetime import datetime
 
 import numpy as np
 
@@ -8,31 +9,43 @@ from alphai_delphi.controller.controller_configuration import ControllerConfigur
 from alphai_delphi.oracle import OracleAction
 from alphai_delphi.scheduler import ScheduleException
 
+logger = logging.getLogger(__name__)
+
 
 class Controller(AbstractController):
+    def __init__(self, configuration, oracle, datasource, scheduler, performance):
+        super().__init__(configuration, oracle, datasource, scheduler, performance)
+        self.elapsed_time = None
 
     def run(self):
-        # loop in all the minute cause the target time can be anything
-        for moment, events in self.scheduler:
-
+        self.start_time = datetime.now()
+        logger.info("%s run started at %s", self.name, self.start_time)
+        for prediction_moment, events in self.scheduler:
             for action in events:
-
                 oracle_interval = self.oracle.get_delta_for_event(action)
-
-                interval = self.get_market_interval(moment, oracle_interval)
-                raw_data = self.datasource.get_data(moment, interval)
+                interval = self.get_market_interval(prediction_moment, oracle_interval)
+                raw_data = self.datasource.get_data(prediction_moment, interval)
 
                 if action == OracleAction.TRAIN:
-                    self._do_train(raw_data, moment)
+                    self._do_train(raw_data, prediction_moment)
+
                 elif action == OracleAction.PREDICT:
                     try:
-                        target_moment = self.scheduler.get_first_valid_target(moment, self.oracle.prediction_horizon)
+                        target_moment = self.scheduler.get_first_valid_target(prediction_moment, self.oracle.prediction_horizon)
                     except ScheduleException as e:
-                        logging.debug(e)
+                        logger.debug(e)
                         continue
-                    self._do_predict(raw_data, moment, target_moment)
+                    prediction_result = self._do_predict(raw_data, prediction_moment, target_moment)
+                    if prediction_result:
+                        self.prediction_moments.append(
+                            (prediction_moment, prediction_result.prediction_timestamp, prediction_result.target_timestamp)
+                        )
+        self.end_time = datetime.now()
+        self.elapsed_time = self.end_time - self.start_time
+        logger.info("%s finished at %s. Took %s", self.name, self.end_time, self.elapsed_time)
 
         self.performance.create_oracle_report()
+        self.print_run_summary()
 
     def get_market_interval(self, moment, oracle_interval):
         """
@@ -63,12 +76,12 @@ class Controller(AbstractController):
         :param current_moment:
         :type current_moment: datetime.datetime
         """
-        logging.info("START training at {}".format(current_moment))
+        logger.info("START training at {}".format(current_moment))
         try:
             self.oracle.train(raw_data, current_moment)
-            logging.info("END training at {}".format(current_moment))
-        except ValueError as e:
-            logging.error("SKIP training. Reason: {}".format(e))
+            logger.info("END training at {}".format(current_moment))
+        except Exception as e:
+            logger.error("SKIP training. Reason: {}".format(e))
 
     def _do_predict(self, raw_data, current_moment, target_moment):
         """
@@ -83,15 +96,18 @@ class Controller(AbstractController):
         :return:
         """
 
-        logging.info("START prediction at {}".format(current_moment))
+        logger.info("START prediction at {}".format(current_moment))
         try:
             prediction_result = self.oracle.predict(raw_data, current_moment, target_moment)
             self.prediction_results.append(prediction_result)
             self._record_prediction(self.oracle.target_feature, prediction_result)
             self._record_actual_performance(self.oracle.target_feature, prediction_result.target_timestamp)
-            logging.info("END prediction at {}".format(current_moment))
-        except (ValueError, KeyError) as e:
-            logging.error("SKIP prediction. Reason {}".format(e))
+            logger.info("END prediction at {}".format(current_moment))
+        except Exception as e:
+            logger.error("SKIP prediction. Reason {}".format(e))
+            return None
+        else:
+            return prediction_result
 
     def _record_actual_performance(self, feature_name, target_datetime):
         """
@@ -103,14 +119,15 @@ class Controller(AbstractController):
         """
         if target_datetime in self.performance:
             previous_symbols = self.performance.get_symbols(target_datetime)
-            final_values = self.datasource.values_for_symbols_feature_and_time(
-                previous_symbols,
-                feature_name,
-                target_datetime
-            )
-            if len(final_values):
-                self.performance.add_final_values(target_datetime, final_values)
-                self.performance.save_to_hdf5(target_datetime)
+            if previous_symbols is not np.nan:
+                final_values = self.datasource.values_for_symbols_feature_and_time(
+                    previous_symbols,
+                    feature_name,
+                    target_datetime
+                )
+                if len(final_values):
+                    self.performance.add_final_values(target_datetime, final_values)
+                    self.performance.save_to_hdf5(target_datetime)
             self.performance.drop_dt(target_datetime)
 
     def _record_prediction(self, feature_name, prediction_result):
@@ -131,3 +148,17 @@ class Controller(AbstractController):
         )
         self.performance.add_prediction(target_dt, prediction_result.mean_vector, prediction_result.covariance_matrix)
         self.performance.add_initial_prices(target_dt, initial_values)
+
+    def print_run_summary(self):
+        logger.info("**************************")
+        logger.info("**************************")
+        logger.info("*** RUN OF {} FINISHED ***".format(self.name))
+        logger.info("From {} to {}".format(self.simulation_start, self.simulation_end))
+        logger.info("Symbols: for every calendar month, we select the 400 symbols with the largest cumulative volume traded over the previous 30 days")
+        logger.info("Time elapsed: {}".format(self.elapsed_time))
+        logger.info("Prediction moments: ")
+        logger.info("{0:<50} {1:<50} {2:<50}".format("Prediction moment", "Prediction Window Start", "Prediction Window End"))
+        for item in self.prediction_moments:
+            logger.info("{0:<50} {1:<50} {2:<50}".format(str(item[0]), str(item[1]), str(item[2])))
+        logger.info("**************************")
+        logger.info("**************************")

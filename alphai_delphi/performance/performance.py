@@ -14,6 +14,7 @@ from alphai_delphi.performance.oracle import (
     read_oracle_symbol_weights_from_path
 )
 
+logger = logging.getLogger(__name__)
 # We want to hide the number of NaturalNameWarning warnings when we format the column names
 # according to the `TIMESTAMP_FORMAT`.
 warnings.simplefilter(action='ignore', category=NaturalNameWarning)
@@ -21,7 +22,6 @@ warnings.simplefilter(action='ignore', category=NaturalNameWarning)
 ORACLE_RESULTS_MEAN_VECTOR_TEMPLATE = '{}_oracle_results_mean_vector.hdf5'
 ORACLE_RESULTS_COVARIANCE_MATRIX_TEMPLATE = '{}_oracle_results_covariance_matrix.hdf5'
 ORACLE_RESULTS_ACTUALS_TEMPLATE = '{}_oracle_results_actuals.hdf5'
-
 
 METRIC_COLUMNS = ['returns_forecast_mean_vector', 'returns_forecast_covariance_matrix', 'initial_prices',
                   'final_prices', 'returns_actuals']
@@ -51,7 +51,7 @@ class OraclePerformance:
 
     def add_final_values(self, target_dt, final_prices):
         if target_dt not in self.metrics.index:
-            logging.error("Error in getting equity symbols at {}: target_dt not in index".format(target_dt))
+            logger.error("Error in getting equity symbols at {}: target_dt not in index".format(target_dt))
         else:
             initial_prices = self.metrics.loc[target_dt, 'initial_prices']
             self.metrics['final_prices'][target_dt] = final_prices
@@ -67,7 +67,7 @@ class OraclePerformance:
         :rtype np.array
         """
         if target_dt not in self.metrics.index:
-            logging.error("Error in getting equity symbols at {}: target_dt not in index".format(target_dt))
+            logger.error("Error in getting equity symbols at {}: target_dt not in index".format(target_dt))
             return np.nan
         else:
             if isinstance(self.metrics.loc[target_dt, 'initial_prices'], pd.Series):
@@ -75,13 +75,13 @@ class OraclePerformance:
             elif not isinstance(self.metrics.loc[target_dt, 'returns_forecast_mean_vector'], pd.Series):
                 return np.array(self.metrics.loc[target_dt, 'returns_forecast_mean_vector'].index)
             else:
-                logging.error("Error in getting equity symbols at {}: no symbols could be found".format(target_dt))
+                logger.error("Error in getting equity symbols at {}: no symbols could be found".format(target_dt))
                 return np.nan
 
     @staticmethod
     def calculate_log_returns(initial_prices, final_prices):
         if set(initial_prices.index) != set(final_prices.index):
-            logging.error("Can't calculate log returns: incompatibility between initial and final prices.")
+            logger.error("Can't calculate log returns: incompatibility between initial and final prices.")
             return np.nan
         else:
             return np.log(final_prices / initial_prices)
@@ -92,7 +92,7 @@ class OraclePerformance:
 
     def save_to_hdf5(self, target_dt):
         if target_dt not in self.metrics.index or np.any(self.metrics.loc[target_dt, :].isnull()):
-            logging.error("Failed to save to hdf5 at {}: target_dt not in index or nan was found".format(target_dt))
+            logger.error("Failed to save to hdf5 at {}: target_dt not in index or nan was found".format(target_dt))
         else:
             target_dt_key = target_dt.strftime(format=TIMESTAMP_FORMAT)
             self.metrics.loc[target_dt, 'returns_forecast_mean_vector'].to_hdf(
@@ -103,6 +103,7 @@ class OraclePerformance:
                 self.output_actuals_filepath, target_dt_key)
 
     def create_oracle_report(self):
+        logger.info("Creating performance report...")
         results_path = self._output_path
         output_path = self._output_path
         oracle_results = read_oracle_results_from_path(results_path, run_mode=self.run_mode)
@@ -110,10 +111,11 @@ class OraclePerformance:
         create_oracle_performance_report(oracle_results, output_path, oracle_symbol_weights)
         create_oracle_data_report(oracle_results, output_path)
         create_time_series_plot(oracle_results, output_path)
+        logger.info("Performance report finished.")
 
     def drop_dt(self, target_dt):
         if target_dt not in self.metrics.index:
-            logging.error(
+            logger.error(
                 "Could not drop target_dt = {}: target_dt not in index".format(target_dt))
         else:
             self.metrics = self.metrics.drop(target_dt)

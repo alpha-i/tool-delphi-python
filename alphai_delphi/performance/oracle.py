@@ -2,6 +2,7 @@ import logging
 import os
 
 import matplotlib
+
 matplotlib.use('Agg')
 
 import numpy as np
@@ -19,6 +20,8 @@ import seaborn as sns
 from alphai_time_series.performance_trials.calculator import Calculator
 
 sns.set_context("talk")
+
+logger = logging.getLogger(__name__)
 
 INFLATION_FACTOR = 1.1
 DEFLATION_FACTOR = 0.9
@@ -80,7 +83,7 @@ def create_oracle_performance_report(oracle_results, output_path, oracle_symbol_
 
     if valid_covariances:
         inv_covariance_matrices = compute_covariance_inverses(oracle_results)
-        logging.info("Attempting to compute optimal covariance matrix")
+        logger.info("Attempting to compute optimal covariance matrix")
         cov_factor = optimise_covariance(oracle_results, inv_covariance_matrices)
     else:
         cov_factor = 1
@@ -93,7 +96,7 @@ def create_oracle_performance_report(oracle_results, output_path, oracle_symbol_
             inv_covariance_matrices.append(diag_matrix)
             oracle_results.returns_forecast_covariance_matrix[date] = diag_matrix
 
-    logging.info("Evaluating likelihoods")
+    logger.info("Evaluating likelihoods")
     for i in range(n_samples):
         date_str = oracle_results.index[i]
         date = pd.datetime.strptime(date_str, '%Y%m%d-%H%M%S').date()
@@ -150,8 +153,8 @@ def create_oracle_performance_report(oracle_results, output_path, oracle_symbol_
                                                                           deflated_cov)
 
         if i == 0:
-            logging.info('Example truth: {}.'.format(truth[1:10]))
-            logging.info('Example forecast: {}.'.format(forecast[1:10]))
+            logger.info('Example truth: {}.'.format(truth[1:10]))
+            logger.info('Example forecast: {}.'.format(forecast[1:10]))
 
         true_relative_winners_losers = calculate_winners_losers(truth)
         forecast_relative_winners_losers = calculate_winners_losers(forecast)
@@ -280,7 +283,7 @@ def optimise_covariance(oracle_results, inv_covariance_matrices):
         args=(oracle_results, inv_covariance_matrices),
         bounds=(1e-3, 1e3), method='bounded'
     )
-    logging.info("Optimizer results: {}".format(optimal_cov_factor))
+    logger.info("Optimizer results: {}".format(optimal_cov_factor))
 
     return optimal_cov_factor.x
 
@@ -602,13 +605,19 @@ def calculate_weighted_correlation_coefficient(truth, forecast, oracle_symbol_we
     def cov(x, y, w):
         """Weighted Covariance"""
         m = np.average(x, weights=w)
-        return np.sum(w * (x - m) * (y - m)) / np.sum(w)
+        result = np.sum(w * (x - m) * (y - m)) / np.sum(w)
+        return result
 
     def corr(x, y, w):
         """Weighted Correlation"""
         return cov(x, y, w) / np.sqrt(cov(x, x, w) * cov(y, y, w))
 
-    return corr(truth, forecast, oracle_symbol_weights)
+    if len(truth) > 0:
+        correlation = corr(truth, forecast, oracle_symbol_weights)
+    else:
+        correlation = np.nan
+
+    return correlation
 
 
 def extract_weight_array(predicted_symbols, oracle_symbol_weights):
@@ -763,13 +772,12 @@ def extract_matching_timestamps(df, reference_a, reference_b):
         if timestamp in reference_a_timestamps and timestamp in reference_b_timestamps:
             matching_timestamps.append(timestamp)
         else:
-            logging.warning('Incomplete prediction. The following timestamp will be ignored: {}'.format(str(timestamp)))
+            logger.warning('Incomplete prediction. The following timestamp will be ignored: {}'.format(str(timestamp)))
 
     return matching_timestamps
 
 
 def check_validity_of_covariances(oracle_results):
-
     valid_covariances = True
 
     n_samples = len(oracle_results)
@@ -784,8 +792,8 @@ def check_validity_of_covariances(oracle_results):
 
         if n_predict != cov_size[0] or n_predict != cov_size[1]:
             valid_covariances = False
-            logging.info("Invalid covariance matrix found:"
-                         "shape {} c.f. prediction length {}".format(cov_size, n_predict))
+            logger.info("Invalid covariance matrix found:"
+                        "shape {} c.f. prediction length {}".format(cov_size, n_predict))
             break
 
     return valid_covariances
