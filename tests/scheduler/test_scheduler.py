@@ -11,7 +11,7 @@ def test_weekly_prediction_and_training_scheduler():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 11, 6, tzinfo=pytz.utc),
         end_date=datetime.datetime(2017, 11, 21, tzinfo=pytz.utc),
-        exchange_name='NYSE',
+        calendar_name='NYSE',
         prediction_horizon=datetime.timedelta(days=1),
         prediction_frequency=SchedulingFrequency(
             frequency_type=SchedulingFrequencyType.WEEKLY, days_offset=0, minutes_offset=30
@@ -31,7 +31,7 @@ def test_weekly_prediction_scheduler_starting_on_tuesday():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 11, 6, tzinfo=pytz.utc),
         end_date=datetime.datetime(2017, 11, 21, tzinfo=pytz.utc),
-        exchange_name='NYSE',
+        calendar_name='NYSE',
         prediction_horizon=datetime.timedelta(days=1),
         prediction_frequency=SchedulingFrequency(
             frequency_type=SchedulingFrequencyType.WEEKLY, days_offset=1, minutes_offset=30
@@ -55,7 +55,7 @@ def test_weekly_prediction_scheduler_with_a_public_holiday():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 12, 20, tzinfo=pytz.utc),
         end_date=datetime.datetime(2018, 1, 3, tzinfo=pytz.utc),
-        exchange_name='NYSE',
+        calendar_name='NYSE',
         prediction_horizon=datetime.timedelta(days=1),
         prediction_frequency=SchedulingFrequency(
             frequency_type=SchedulingFrequencyType.WEEKLY, days_offset=0, minutes_offset=15
@@ -82,7 +82,7 @@ def test_daily_prediction_scheduler():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 12, 20, tzinfo=pytz.utc),
         end_date=datetime.datetime(2018, 1, 3, tzinfo=pytz.utc),
-        exchange_name='NYSE',
+        calendar_name='NYSE',
         prediction_horizon=datetime.timedelta(days=1),
         prediction_frequency=SchedulingFrequency(
             frequency_type=SchedulingFrequencyType.DAILY, minutes_offset=15
@@ -109,7 +109,7 @@ def test_minute_prediction_scheduler():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 12, 20, 15, 0, tzinfo=pytz.utc),
         end_date=datetime.datetime(2017, 12, 20, 18, 0, tzinfo=pytz.utc),
-        exchange_name='NYSE',
+        calendar_name='NYSE',
         prediction_horizon=datetime.timedelta(days=1),
         prediction_frequency=SchedulingFrequency(frequency_type=SchedulingFrequencyType.MINUTE),
         training_frequency=SchedulingFrequency(frequency_type=SchedulingFrequencyType.MINUTE)
@@ -123,7 +123,7 @@ def test_scheduler_works_as_iterator():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 11, 6, tzinfo=pytz.utc),
         end_date=datetime.datetime(2017, 11, 21, tzinfo=pytz.utc),
-        exchange_name='NYSE',
+        calendar_name='NYSE',
         prediction_horizon=datetime.timedelta(days=1),
         prediction_frequency=SchedulingFrequency(
             frequency_type=SchedulingFrequencyType.WEEKLY, days_offset=1, minutes_offset=30
@@ -142,7 +142,7 @@ def test_scheduler_checks_for_valid_prediction_target():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 12, 20, tzinfo=pytz.utc),
         end_date=datetime.datetime(2018, 1, 3, tzinfo=pytz.utc),
-        exchange_name='NYSE',
+        calendar_name='NYSE',
         prediction_horizon=datetime.timedelta(days=1),
         prediction_frequency=SchedulingFrequency(
             frequency_type=SchedulingFrequencyType.DAILY, minutes_offset=15
@@ -164,7 +164,7 @@ def test_scheduler_checks_for_valid_prediction_target_with_early_close():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 11, 1, tzinfo=pytz.utc),
         end_date=datetime.datetime(2018, 1, 3, tzinfo=pytz.utc),
-        exchange_name='NYSE',
+        calendar_name='NYSE',
         prediction_horizon=datetime.timedelta(days=1),
         prediction_frequency=SchedulingFrequency(
             frequency_type=SchedulingFrequencyType.DAILY, minutes_offset=15

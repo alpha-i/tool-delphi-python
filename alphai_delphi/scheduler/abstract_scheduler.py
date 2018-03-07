@@ -27,8 +27,7 @@ class SchedulingFrequency:
 
 class AbstractScheduler(metaclass=ABCMeta):
     def __init__(self, start_date, end_date,
-                 prediction_frequency, training_frequency,
-                 prediction_horizon):
+                 prediction_frequency, training_frequency):
         """
         :param start_date: The beginning of the full scheduling window
         :type start_date: datetime.datetime
@@ -38,14 +37,12 @@ class AbstractScheduler(metaclass=ABCMeta):
         :type training_frequency: SchedulingFrequency
         :param prediction_frequency: Define the frequency of Prediction to build a schedule
         :type prediction_frequency: SchedulingFrequency
-        :param prediction_horizon: The prediction horizon
-        :type prediction_horizon: datetime.timedelta
+
         """
         self.start_date = start_date
         self.end_date = end_date
         self.prediction_frequency = prediction_frequency
         self.training_frequency = training_frequency
-        self.prediction_horizon = prediction_horizon
 
     @abstractmethod
     def __iter__(self):

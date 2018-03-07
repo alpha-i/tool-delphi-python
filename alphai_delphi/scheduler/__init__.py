@@ -1,7 +1,7 @@
 import datetime
 from collections import defaultdict
 
-import pandas_market_calendars as calendar
+import alphai_calendars as calendars
 from dateutil import rrule
 
 from alphai_delphi.oracle import OracleAction
@@ -13,20 +13,19 @@ class Scheduler(AbstractScheduler):
     The scheduler controls traning and prediction events for a controller run
     """
 
-    def __init__(self, start_date, end_date, exchange_name,
-                 prediction_frequency, training_frequency,
-                 prediction_horizon):
+    def __init__(self, start_date, end_date, calendar_name,
+                 prediction_frequency, training_frequency, prediction_horizon):
 
         """
-        :param exchange_name: Name of the exchange
-        :type exchange_name: str
+        :param calendar_name: Name of the exchange
+        :type calendar_name: str
         """
 
-        super().__init__(start_date, end_date, prediction_frequency, training_frequency, prediction_horizon)
+        super().__init__(start_date, end_date, prediction_frequency, training_frequency)
         self.start_date = start_date
         self.end_date = end_date
-        self.exchange_name = exchange_name
-        self.calendar = calendar.get_calendar(self.exchange_name)
+        self.calendar_name = calendar_name
+        self.calendar = calendars.get_calendar(self.calendar_name)
 
         self.prediction_frequency = prediction_frequency
         self.training_frequency = training_frequency
@@ -41,10 +40,10 @@ class Scheduler(AbstractScheduler):
         for schedule_day in sorted(self.schedule.keys()):
             yield schedule_day, list(self.schedule[schedule_day])
 
-    def _get_scheduled_days(self, exchange_calendar, offset, start_date, end_date):
+    def _get_scheduled_days(self, offset):
         week_days = filter(lambda x: x.weekday() == offset,
-                           rrule.rrule(rrule.DAILY, dtstart=start_date, until=end_date))
-        valid_days = exchange_calendar.valid_days(start_date, end_date)
+                           rrule.rrule(rrule.DAILY, dtstart=self.start_date, until=self.end_date))
+        valid_days = self.calendar.valid_days(self.start_date, self.end_date)
 
         result = []
         for day in week_days:
@@ -53,46 +52,43 @@ class Scheduler(AbstractScheduler):
             result.append(day)
         return result
 
-    def _init_a_schedule(self, schedule, action):
+    def _init_a_schedule(self, scheduling_frequency, action):
         """
-        :param schedule:
-        :type schedule: SchedulingFrequency
+        :param scheduling_frequency:
+        :type scheduling_frequency: SchedulingFrequency
         :param action:
         :type action: OracleAction
         :return:
         """
-        exchange_schedule = self.calendar.schedule(self.start_date, self.end_date)
-        if schedule.frequency_type == SchedulingFrequencyType.WEEKLY:
-            scheduled_days = self._get_scheduled_days(
-                self.calendar, schedule.days_offset, self.start_date,
-                self.end_date)
+        schedule = self.calendar.schedule(self.start_date, self.end_date)
+        if scheduling_frequency.frequency_type == SchedulingFrequencyType.WEEKLY:
+            scheduled_days = self._get_scheduled_days(scheduling_frequency.days_offset)
 
             for day in scheduled_days:
-                market_open = exchange_schedule.loc[day, "market_open"]
-                scheduled_time = market_open + datetime.timedelta(minutes=schedule.minutes_offset)
+                market_open = schedule.loc[day, "market_open"]
+                scheduled_time = market_open + datetime.timedelta(minutes=scheduling_frequency.minutes_offset)
                 self.schedule[scheduled_time].append(action)
 
-        elif schedule.frequency_type == SchedulingFrequencyType.DAILY:
+        elif scheduling_frequency.frequency_type == SchedulingFrequencyType.DAILY:
             market_days = self.calendar.valid_days(self.start_date, self.end_date)
             for day in market_days:
-                market_open = exchange_schedule.loc[day, "market_open"]
-                scheduled_time = market_open + datetime.timedelta(minutes=schedule.minutes_offset)
+                market_open = schedule.loc[day, "market_open"]
+                scheduled_time = market_open + datetime.timedelta(minutes=scheduling_frequency.minutes_offset)
                 self.schedule[scheduled_time].append(action)
 
-        elif schedule.frequency_type == SchedulingFrequencyType.MINUTE:
+        elif scheduling_frequency.frequency_type == SchedulingFrequencyType.MINUTE:
             for day in self.calendar.valid_days(self.start_date, self.end_date):
-                market_open = exchange_schedule.loc[day, "market_open"]
-                market_close = exchange_schedule.loc[day, "market_close"]
+                market_open = schedule.loc[day, "market_open"]
+                market_close = schedule.loc[day, "market_close"]
                 minutes = rrule.rrule(rrule.MINUTELY, dtstart=market_open, until=market_close)
                 for minute in minutes:
                     self.schedule[minute].append(action)
 
     def get_first_valid_target(self, moment, interval):
-        exchange_calendar = calendar.get_calendar(self.exchange_name)
-        exchange_schedule = exchange_calendar.schedule(self.start_date, self.end_date)
+        schedule = self.calendar.schedule(self.start_date, self.end_date)
         target = moment + interval
 
-        while not exchange_calendar.open_at_time(exchange_schedule, target, include_close=True):
+        while not self.calendar.open_at_time(schedule, target, include_close=True):
             target += datetime.timedelta(days=1)
             if target > self.end_date:
                 raise ScheduleException("Target outside of scheduling window")
