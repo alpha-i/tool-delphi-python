@@ -1,7 +1,11 @@
 from abc import ABCMeta, abstractmethod
+from datetime import timedelta
 from enum import Enum
 
 from pandas.core.base import DataError
+
+from alphai_delphi.configuration.schemas import SchedulingConfigurationSchema, OracleConfigurationSchema, \
+    PredictionHorizonUnit
 
 
 class OracleAction(Enum):
@@ -32,14 +36,46 @@ class PredictionResult:
 
 
 class AbstractOracle(metaclass=ABCMeta):
-    def __init__(self, config):
+    def __init__(self, calendar_name, scheduling_configuration, oracle_configuration):
         """
         :param config:
         :type config: OracleConfiguration
         """
-        self.scheduling = config.scheduling
-        self.config = config.oracle
+
+        self.scheduling = self._init_config(scheduling_configuration, SchedulingConfigurationSchema)
+        self.config = self._init_config(oracle_configuration, OracleConfigurationSchema)
+        self.prediction_horizon = self._init_prediction_horizon(self.config.prediction_horizon)
+        self.calendar_name = calendar_name
+
         self._sanity_check()
+
+    def _init_config(self, config, schema):
+        """
+        Validates and load an object against a configuration and a schema
+        :param config:
+        :param BaseSchema schema:
+
+        :return BaseSchema:
+        """
+        validator = schema()
+
+        validated_object, errors = validator.load(config)
+        if errors:
+            raise Exception(errors)
+
+        return validated_object
+
+    def _init_prediction_horizon(self, prediction_horizon):
+        """
+        build the timedelta from prediction horizon object
+
+        :param AttribDict prediction_horizon: dict with this structure {'value': int, 'unit': str }
+        :return timedelta:
+        """
+
+        unit = PredictionHorizonUnit(prediction_horizon.unit).value
+
+        return timedelta(**{unit: prediction_horizon.value})
 
     @abstractmethod
     def _sanity_check(self):
@@ -161,13 +197,6 @@ class AbstractOracle(metaclass=ABCMeta):
         return self.scheduling.prediction_frequency
 
     @property
-    def prediction_horizon(self):
-        """
-        :rtype: datetime.timedelta
-        """
-        return self.scheduling.prediction_horizon
-
-    @property
     def prediction_offset(self):
         """
         Amount of time from the market open
@@ -194,8 +223,10 @@ class AbstractOracle(metaclass=ABCMeta):
         :rtype: datetime.timedelta
         """
         if event == OracleAction.PREDICT:
-            return self.scheduling.prediction_delta
+            return self.config.prediction_delta
         elif event == OracleAction.TRAIN:
-            return self.scheduling.training_delta
+            return self.config.training_delta
 
         raise ValueError("Event type {} not supported".format(event))
+
+

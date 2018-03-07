@@ -19,40 +19,49 @@ class TestConstantOracle(TestCase):
 
         filename = os.path.join(os.path.dirname(__file__), '..', 'resources', '19990101_19990301_3_stocks.hdf5')
 
+        calendar_name = "NYSE"
         data_source_config = {
             "filename": filename,
-            "exchange": "NYSE",
+            "exchange": calendar_name,
             "start": datetime.datetime(1999, 1, 1, tzinfo=pytz.utc),
             "end": datetime.datetime(1999, 3, 1, tzinfo=pytz.utc),
             "data_timezone": "America/New_York"
         }
 
-        cls.oracle_config = OracleConfiguration({
-            "scheduling": {
-                "training_frequency": {
-                    "frequency_type": 'WEEKLY',
-                },
-                "training_delta": 24,
-
-                "prediction_frequency": {
-                    "frequency_type": 'WEEKLY',
-                },
-                "prediction_horizon": 24,
-                "prediction_offset": 30,
-                "prediction_delta": 168
+        scheduling_configuration =  {
+            "training_frequency": {
+                "frequency_type": 'WEEKLY',
+                "days_offset": 0,
+                "minutes_offset": 30
             },
-            "oracle": {
+            "prediction_frequency": {
+                "frequency_type": 'WEEKLY',
+                "days_offset": 0,
+                "minutes_offset": 30
+            }
+        }
+
+        oracle_config ={
+            "prediction_horizon": {
+                "unit": "days",
+                "value": 1
+            },
+            "training_delta": 24,
+            "prediction_delta": 168,
+            "model": {
                 "constant_variance": 0.1,
                 "past_horizon": datetime.timedelta(days=7),
                 "target_feature": 'close'
             }
-
-
-        })
+        }
 
         cls.data_source = StocksHDF5DataSource(data_source_config)
 
-        cls.constant_oracle = ConstantOracle(cls.oracle_config)
+        cls.constant_oracle = ConstantOracle(
+            calendar_name=calendar_name,
+            oracle_configuration=oracle_config,
+            scheduling_configuration=scheduling_configuration
+        )
 
     def test_single_predict(self):
 

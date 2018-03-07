@@ -1,7 +1,19 @@
+from enum import Enum
 from marshmallow import Schema, fields
 from marshmallow_enum import EnumField
 
 from alphai_delphi.scheduler.abstract_scheduler import SchedulingFrequencyType
+
+
+class PredictionHorizonUnit(Enum):
+
+    days = 'days'
+    seconds = 'seconds'
+    microseconds = 'microseconds'
+    milliseconds = 'milliseconds'
+    minutes = 'minutes'
+    hours = 'hours'
+    weeks = 'weeks'
 
 
 class AttributeDict(dict):
@@ -27,7 +39,7 @@ class SchedulingFrequencySchema(BaseSchema):
     days_offset = fields.Integer(default=0)
 
 
-class OracleSchedulingConfigurationSchema(BaseSchema):
+class SchedulingConfigurationSchema(BaseSchema):
     """
     prediction_horizon: how many HOURS in the future you want to predict
 
@@ -37,14 +49,34 @@ class OracleSchedulingConfigurationSchema(BaseSchema):
     training_frequency:the type of frequency for training
     training_delta: how many DAYS of data are needed for the training
     """
-    prediction_horizon = fields.TimeDelta(precision='hours', required=True)
 
     prediction_frequency = fields.Nested(SchedulingFrequencySchema(), required=True)
-    prediction_delta = fields.TimeDelta(precision='days', required=True)
-
     training_frequency = fields.Nested(SchedulingFrequencySchema(), required=True)
-    training_delta = fields.TimeDelta(precision='days', required=True)
 
+
+class PredictionHorizonConfigurationSchema(BaseSchema):
+
+    unit = EnumField(PredictionHorizonUnit, required=True)
+    value = fields.Integer()
+
+
+class DataTransformationConfigurationSchema(BaseSchema):
+
+    feature_config_list = fields.List(fields.Dict)
+    features_ndays = fields.Integer()
+    features_resample_minutes = fields.Integer()
+    fill_limit = fields.Integer()
+
+
+class OracleConfigurationSchema(BaseSchema):
+    prediction_delta = fields.Integer()
+    training_delta = fields.Integer()
+
+    prediction_horizon = fields.Nested(PredictionHorizonConfigurationSchema)
+    data_transformation = fields.Nested(DataTransformationConfigurationSchema)
+
+    model = fields.Dict()
+    universe = fields.Dict(required=False, allow_none=True)
 
 class ControllerConfigurationSchema(BaseSchema):
     """

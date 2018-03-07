@@ -17,7 +17,7 @@ from alphai_delphi.data_source.xarray_data_source import XArrayDataSource
 from alphai_delphi.oracle.constant_oracle import ConstantOracle
 from alphai_delphi.oracle.oracle_configuration import OracleConfiguration
 from alphai_delphi.performance.performance import OraclePerformance
-from alphai_delphi.scheduler import Scheduler
+from alphai_delphi.scheduler.scheduler import Scheduler
 
 TEST_HDF5FILE_NAME = os.path.join(os.path.dirname(__file__), '..', 'resources', '19990101_19990301_3_stocks.hdf5')
 TEMPORARY_DIRECTORY = TemporaryDirectory()
@@ -73,34 +73,43 @@ class TestController(unittest.TestCase):
         simulation_end = datetime.datetime(1999, 2, 10, tzinfo=pytz.utc)
         temp_dir = TemporaryDirectory()
 
-        oracle_config = {
-            "scheduling": {
-                "prediction_horizon": 240,
-                "prediction_frequency":
-                    {
-                        "frequency_type": 'DAILY',
-                        "days_offset": 0,
-                        "minutes_offset": 15
-                    },
-                "prediction_delta": 240,
+        scheduling_config = {
+            "prediction_frequency":
+                {
+                    "frequency_type": 'DAILY',
+                    "days_offset": 0,
+                    "minutes_offset": 15
+                },
+            "training_frequency":
+                {
+                    "frequency_type": 'WEEKLY',
+                    "days_offset": 0,
+                    "minutes_offset": 15
+                },
 
-                "training_frequency":
-                    {
-                        "frequency_type": 'WEEKLY',
-                        "days_offset": 0,
-                        "minutes_offset": 15
-                    },
-                "training_delta": 480,
-            },
-            "oracle": {
-                "constant_variance": 0.1,
-                "past_horizon": datetime.timedelta(days=7),
-                "target_feature": 'close'
-            }
         }
 
-        controller = self._create_dummy_controller(exchange_name, simulation_end, simulation_start, temp_dir,
-                                                   oracle_config)
+        oracle_config = {
+            "prediction_horizon": {
+                "unit": "days",
+                "value": 10,
+            },
+            "prediction_delta": 240,
+            "training_delta": 480,
+            "model": {
+                "constant_variance": 0.1,
+                "past_horizon": datetime.timedelta(days=7),
+                "target_feature": 'close',
+            },
+        }
+
+        controller = self._create_dummy_controller(
+            simulation_end, simulation_start, temp_dir,
+            exchange_name,
+            oracle_config,
+            scheduling_config
+        )
+
         test_list = [
             dict(moment=pd.Timestamp("2018-01-29", tz=pytz.utc),
                  oracle_interval=datetime.timedelta(days=7),
@@ -130,35 +139,36 @@ class TestController(unittest.TestCase):
         simulation_end = datetime.datetime(1999, 2, 10, tzinfo=pytz.utc)
         temp_dir = TemporaryDirectory()
 
-        oracle_config = {
-            "scheduling": {
-                "prediction_horizon": 240,
-                "prediction_frequency":
-                    {
-                        "frequency_type": 'DAILY',
-                        "days_offset": 0,
-                        "minutes_offset": 15
-                    },
-                "prediction_delta": 240,
-
-                "training_frequency":
-                    {
-                        "frequency_type": 'WEEKLY',
-                        "days_offset": 0,
-                        "minutes_offset": 15
-                    },
-                "training_delta": 480,
+        scheduling_config = {
+            "prediction_frequency": {
+                "frequency_type": 'DAILY',
+                "days_offset": 0,
+                "minutes_offset": 15
             },
-            "oracle": {
-                "constant_variance": 0.1,
-                "past_horizon": datetime.timedelta(days=7),
-                "target_feature": 'close'
+            "training_frequency": {
+                "frequency_type": 'WEEKLY',
+                "days_offset": 0,
+                "minutes_offset": 15
             }
         }
+        oracle_config = {
+            "prediction_horizon": {
+                "unit": "days",
+                "value": 10,
+            },
+            "prediction_delta": 240,
+            "training_delta": 480,
+            "model": {
+                "constant_variance": 0.1,
+                "past_horizon": datetime.timedelta(days=7),
+                "target_feature": 'close',
+            },
+            "data_transformation": {}
 
-        controller = self._create_dummy_controller(exchange_name, simulation_end, simulation_start,
-                                                   temp_dir, oracle_config)
+        }
 
+        controller = self._create_dummy_controller(simulation_end, simulation_start, temp_dir, exchange_name,
+                                                   oracle_config, scheduling_config)
         controller.run()
 
         assert len(controller.prediction_results) == 14  # as the valid market days in the prediction range
@@ -171,54 +181,60 @@ class TestController(unittest.TestCase):
     # to run this test use add the parameter --runslow to the pytest invoker
     @pytest.mark.slow
     def test_controller_with_hdf5_data_source(self):
-        exchange_name = "NYSE"
+        calendar_name = "NYSE"
         simulation_start = datetime.datetime(1999, 1, 10, tzinfo=pytz.utc)
         simulation_end = datetime.datetime(1999, 2, 10, tzinfo=pytz.utc)
 
         data_source_config = {
             "filename": TEST_HDF5FILE_NAME,
-            "exchange": exchange_name,
+            "exchange": calendar_name,
             "data_timezone": "America/New_York",
             "start": datetime.datetime(1999, 1, 1, tzinfo=pytz.utc),
             "end": datetime.datetime(1999, 3, 1, tzinfo=pytz.utc)
         }
 
         datasource = StocksHDF5DataSource(data_source_config)
-        oracle_config = OracleConfiguration(
-            {
-                "scheduling": {
-                    "prediction_horizon": 240,
-                    "prediction_frequency":
-                        {
-                            "frequency_type": "DAILY",
-                            "days_offset": 0,
-                            "minutes_offset": 15
-                        },
-                    "prediction_delta": 10,
 
-                    "training_frequency":
-                        {
-                            "frequency_type": "WEEKLY",
-                            "days_offset": 0,
-                            "minutes_offset": 15
-                        },
-                    "training_delta": 20,
+        scheduling_configuration = {
+            "prediction_frequency":
+                {
+                    "frequency_type": "DAILY",
+                    "days_offset": 0,
+                    "minutes_offset": 15
                 },
-                "oracle": {
-                    "constant_variance": 0.1,
-                    "past_horizon": datetime.timedelta(days=7),
-                    "target_feature": "close"
-                }
+
+            "training_frequency":
+                {
+                    "frequency_type": "WEEKLY",
+                    "days_offset": 0,
+                    "minutes_offset": 15
+                },
+        }
+        oracle_config = {
+            "prediction_horizon": {
+                "unit": "days",
+                "value": 10
+            },
+            "prediction_delta": 10,
+            "training_delta": 20,
+            "model": {
+                "constant_variance": 0.1,
+                "past_horizon": datetime.timedelta(days=7),
+                "target_feature": "close"
             }
+        }
+
+        oracle = ConstantOracle(
+            calendar_name=calendar_name,
+            scheduling_configuration=scheduling_configuration,
+            oracle_configuration=oracle_config
         )
 
-        oracle = ConstantOracle(oracle_config)
         scheduler = Scheduler(simulation_start,
                               simulation_end,
-                              exchange_name,
+                              calendar_name,
                               oracle.prediction_frequency,
-                              oracle.training_frequency,
-                              oracle.prediction_horizon
+                              oracle.training_frequency
                               )
 
         controller_configuration = ControllerConfiguration({
@@ -247,53 +263,57 @@ class TestController(unittest.TestCase):
     # to run this test use add the parameter --runslow to the pytest invoker
     @pytest.mark.slow
     def test_controller_with_stochastic_process_data_source(self):
-        exchange_name = "NYSE"
+        calendar_name = "NYSE"
         data_source_config = {
-            "exchange": exchange_name,
+            "exchange": calendar_name,
             "start": datetime.datetime(1999, 1, 1, tzinfo=pytz.utc),
             "end": datetime.datetime(1999, 3, 1, tzinfo=pytz.utc)
         }
         datasource = StochasticProcessDataSource(data_source_config)
 
-        oracle_config = OracleConfiguration(
-            {
-                "scheduling": {
-                    "prediction_horizon": 240,
-                    "prediction_frequency":
-                        {
-                            "frequency_type": "DAILY",
-                            "days_offset": 0,
-                            "minutes_offset": 15
-                        },
-                    "prediction_delta": 10,
-
-                    "training_frequency":
-                        {
-                            "frequency_type": "WEEKLY",
-                            "days_offset": 0,
-                            "minutes_offset": 15
-                        },
-                    "training_delta": 20,
+        scheduling_configuration = {
+            "prediction_frequency":
+                {
+                    "frequency_type": "DAILY",
+                    "days_offset": 0,
+                    "minutes_offset": 15
                 },
-                "oracle": {
-                    "constant_variance": 0.1,
-                    "past_horizon": datetime.timedelta(days=7),
-                    "target_feature": "close"
-                }
-            }
-        )
 
-        oracle = ConstantOracle(oracle_config)
+            "training_frequency":
+                {
+                    "frequency_type": "WEEKLY",
+                    "days_offset": 0,
+                    "minutes_offset": 15
+                },
+        }
+        oracle_config = {
+            "prediction_horizon": {
+                "unit": "days",
+                "value": 10
+            },
+            "prediction_delta": 10,
+            "training_delta": 20,
+            "model": {
+                "constant_variance": 0.1,
+                "past_horizon": datetime.timedelta(days=7),
+                "target_feature": "close"
+            }
+        }
+
+        oracle = ConstantOracle(
+            calendar_name=calendar_name,
+            scheduling_configuration=scheduling_configuration,
+            oracle_configuration=oracle_config
+        )
 
         # these dates need to be within [start, end] of the data source
         simulation_start = datetime.datetime(1999, 1, 10, tzinfo=pytz.utc)
         simulation_end = datetime.datetime(1999, 2, 10, tzinfo=pytz.utc)
         scheduler = Scheduler(simulation_start,
                               simulation_end,
-                              exchange_name,
+                              calendar_name,
                               oracle.prediction_frequency,
-                              oracle.training_frequency,
-                              oracle.prediction_horizon
+                              oracle.training_frequency
                               )
 
         controller_configuration = ControllerConfiguration({
@@ -321,9 +341,9 @@ class TestController(unittest.TestCase):
 
     @pytest.mark.slow
     def test_controller_with_xarray(self):
-        exchange_name = "NYSE"
+        calendar_name = "NYSE"
         data_source_config = {
-            "exchange": exchange_name,
+            "exchange": calendar_name,
             "data_timezone": "America/New_York",
             "filename": "tests/resources/19990101_19990301_3_stocks.nc",
             "start": datetime.datetime(2006, 12, 31, tzinfo=pytz.utc),
@@ -331,45 +351,49 @@ class TestController(unittest.TestCase):
         }
         datasource = XArrayDataSource(data_source_config)
 
-        oracle_config = OracleConfiguration(
-            {
-                "scheduling": {
-                    "prediction_horizon": 240,
-                    "prediction_frequency":
-                        {
-                            "frequency_type": "DAILY",
-                            "days_offset": 0,
-                            "minutes_offset": 15
-                        },
-                    "prediction_delta": 10,
-
-                    "training_frequency":
-                        {
-                            "frequency_type": "WEEKLY",
-                            "days_offset": 0,
-                            "minutes_offset": 15
-                        },
-                    "training_delta": 20,
+        scheduling_configuration = {
+            "prediction_frequency":
+                {
+                    "frequency_type": "DAILY",
+                    "days_offset": 0,
+                    "minutes_offset": 15
                 },
-                "oracle": {
-                    "constant_variance": 0.1,
-                    "past_horizon": datetime.timedelta(days=7),
-                    "target_feature": "close"
-                }
-            }
-        )
 
-        oracle = ConstantOracle(oracle_config)
+            "training_frequency":
+                {
+                    "frequency_type": "WEEKLY",
+                    "days_offset": 0,
+                    "minutes_offset": 15
+                },
+        }
+        oracle_config = {
+            "prediction_horizon": {
+                "unit": "days",
+                "value": 10
+            },
+            "prediction_delta": 10,
+            "training_delta": 20,
+            "model": {
+                "constant_variance": 0.1,
+                "past_horizon": datetime.timedelta(days=7),
+                "target_feature": "close"
+            }
+        }
+
+        oracle = ConstantOracle(
+            calendar_name=calendar_name,
+            scheduling_configuration=scheduling_configuration,
+            oracle_configuration=oracle_config
+        )
 
         # these dates need to be within [start, end] of the data source
         simulation_start = datetime.datetime(1999, 1, 10, tzinfo=pytz.utc)
         simulation_end = datetime.datetime(1999, 2, 10, tzinfo=pytz.utc)
         scheduler = Scheduler(simulation_start,
                               simulation_end,
-                              exchange_name,
+                              calendar_name,
                               oracle.prediction_frequency,
-                              oracle.training_frequency,
-                              oracle.prediction_horizon
+                              oracle.training_frequency
                               )
 
         controller_configuration = ControllerConfiguration({
@@ -395,23 +419,29 @@ class TestController(unittest.TestCase):
         # Check if files have been writter
         assert len(glob.glob(temp_dir.name + "/*hdf5")) == 3
 
-    def _create_dummy_controller(self, exchange_name, simulation_end, simulation_start, temp_dir, oracle_config):
+    def _create_dummy_controller(self, simulation_end, simulation_start, temp_dir, calendar_name,
+                                 oracle_config,
+                                 scheduling_config):
         data_source_config = {
             "filename": TEST_HDF5FILE_NAME,
-            "exchange": exchange_name,
+            "exchange": calendar_name,
             "start": datetime.datetime(1999, 1, 11, tzinfo=pytz.utc),
             "end": datetime.datetime(1999, 1, 11, tzinfo=pytz.utc)
         }
-        datasource = DummyDataSource(data_source_config)
-        oracle_config = OracleConfiguration(oracle_config)
 
-        oracle = ConstantOracle(oracle_config)
+        datasource = DummyDataSource(data_source_config)
+
+        oracle = ConstantOracle(
+            calendar_name=calendar_name,
+            oracle_configuration=oracle_config,
+            scheduling_configuration=scheduling_config
+        )
+
         scheduler = Scheduler(simulation_start,
                               simulation_end,
-                              exchange_name,
+                              calendar_name,
                               oracle.prediction_frequency,
-                              oracle.training_frequency,
-                              oracle.prediction_horizon
+                              oracle.training_frequency
                               )
         controller_configuration = ControllerConfiguration({
             'start_date': simulation_start.strftime('%Y-%m-%d'),
