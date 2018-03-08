@@ -8,7 +8,7 @@ class AbstractController(metaclass=ABCMeta):
     def __init__(self, configuration, oracle, datasource, scheduler, performance):
         """
         :param configuration:
-        :type configuration: ControllerConfiguration
+        :type configuration: dict
         :param oracle: The oracle to run
         :type oracle: AbstractOracle
         :param datasource: The source of the data

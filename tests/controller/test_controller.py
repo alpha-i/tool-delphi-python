@@ -10,8 +10,7 @@ import pandas as pd
 import pytest
 import pytz
 
-from alphai_delphi import Controller, OraclePerformance, Scheduler
-from alphai_delphi.data_source import AbstractDataSource
+from alphai_delphi import Controller, OraclePerformance, Scheduler, AbstractDataSource
 from alphai_delphi.data_source.hdf5_data_source import StocksHDF5DataSource
 from alphai_delphi.data_source.stochastic_process_data_source import StochasticProcessDataSource
 from alphai_delphi.data_source.xarray_data_source import XArrayDataSource
@@ -130,7 +129,7 @@ class TestController(unittest.TestCase):
             assert expected_date == new_date
 
     def test_controller_with_dummy_data_source(self):
-        exchange_name = "NYSE"
+        calendar_name = "NYSE"
         simulation_start = datetime.datetime(1999, 1, 10, tzinfo=pytz.utc)
         simulation_end = datetime.datetime(1999, 2, 10, tzinfo=pytz.utc)
         temp_dir = TemporaryDirectory()
@@ -163,7 +162,7 @@ class TestController(unittest.TestCase):
 
         }
 
-        controller = self._create_dummy_controller(simulation_end, simulation_start, temp_dir, exchange_name,
+        controller = self._create_dummy_controller(simulation_end, simulation_start, temp_dir, calendar_name,
                                                    oracle_config, scheduling_config)
         controller.run()
 
@@ -226,12 +225,13 @@ class TestController(unittest.TestCase):
             oracle_configuration=oracle_config
         )
 
-        scheduler = Scheduler(simulation_start,
-                              simulation_end,
-                              calendar_name,
-                              oracle.prediction_frequency,
-                              oracle.training_frequency
-                              )
+        scheduler = Scheduler(
+            start_date=simulation_start,
+            end_date=simulation_end,
+            calendar_name=calendar_name,
+            prediction_frequency=oracle.prediction_frequency,
+            training_frequency=oracle.training_frequency
+        )
 
         controller_configuration = {
             'start_date': simulation_start.strftime('%Y-%m-%d'),
