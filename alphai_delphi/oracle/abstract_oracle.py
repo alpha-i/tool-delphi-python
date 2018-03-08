@@ -5,7 +5,7 @@ from enum import Enum
 from pandas.core.base import DataError
 
 from alphai_delphi.configuration.schemas import SchedulingConfigurationSchema, OracleConfigurationSchema, \
-    PredictionHorizonUnit
+    PredictionHorizonUnit, InvalidConfiguration
 
 
 class OracleAction(Enum):
@@ -16,7 +16,6 @@ class OracleAction(Enum):
 class PredictionResult:
     def __init__(self, mean_vector, covariance_matrix, prediction_timestamp, target_timestamp):
         """
-
         :param mean_vector: vector of predicted means
         :type mean_vector: pd.Series
         :param covariance_matrix: covariance matrix
@@ -61,7 +60,7 @@ class AbstractOracle(metaclass=ABCMeta):
 
         validated_object, errors = validator.load(config)
         if errors:
-            raise Exception(errors)
+            raise InvalidConfiguration(errors)
 
         return validated_object
 
@@ -228,5 +227,3 @@ class AbstractOracle(metaclass=ABCMeta):
             return self.config.training_delta
 
         raise ValueError("Event type {} not supported".format(event))
-
-

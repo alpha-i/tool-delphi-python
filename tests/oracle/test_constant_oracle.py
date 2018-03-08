@@ -5,18 +5,15 @@ from unittest import TestCase
 import numpy as np
 import pytz
 
-from alphai_delphi.oracle.oracle_configuration import OracleConfiguration
-from alphai_delphi.scheduler.abstract_scheduler import SchedulingFrequencyType
-from alphai_delphi.oracle.constant_oracle import ConstantOracle
 from alphai_delphi.data_source.hdf5_data_source import StocksHDF5DataSource
 from alphai_delphi.oracle.abstract_oracle import OracleAction
+from alphai_delphi.oracle.constant_oracle import ConstantOracle
 
 
 class TestConstantOracle(TestCase):
 
     @classmethod
     def setUpClass(cls):
-
         filename = os.path.join(os.path.dirname(__file__), '..', 'resources', '19990101_19990301_3_stocks.hdf5')
 
         calendar_name = "NYSE"
@@ -28,7 +25,7 @@ class TestConstantOracle(TestCase):
             "data_timezone": "America/New_York"
         }
 
-        scheduling_configuration =  {
+        scheduling_configuration = {
             "training_frequency": {
                 "frequency_type": 'WEEKLY',
                 "days_offset": 0,
@@ -41,7 +38,7 @@ class TestConstantOracle(TestCase):
             }
         }
 
-        oracle_config ={
+        oracle_config = {
             "prediction_horizon": {
                 "unit": "days",
                 "value": 1
@@ -64,7 +61,6 @@ class TestConstantOracle(TestCase):
         )
 
     def test_single_predict(self):
-
         current_datetime = datetime.datetime(1999, 1, 20, tzinfo=pytz.utc)
 
         event = OracleAction.PREDICT

@@ -9,13 +9,12 @@ import pandas as pd
 import pytest
 import pytz
 
-from alphai_delphi.controller import Controller, ControllerConfiguration
+from alphai_delphi.controller import Controller
 from alphai_delphi.data_source import AbstractDataSource
 from alphai_delphi.data_source.hdf5_data_source import StocksHDF5DataSource
 from alphai_delphi.data_source.stochastic_process_data_source import StochasticProcessDataSource
 from alphai_delphi.data_source.xarray_data_source import XArrayDataSource
 from alphai_delphi.oracle.constant_oracle import ConstantOracle
-from alphai_delphi.oracle.oracle_configuration import OracleConfiguration
 from alphai_delphi.performance.performance import OraclePerformance
 from alphai_delphi.scheduler.scheduler import Scheduler
 
@@ -237,10 +236,10 @@ class TestController(unittest.TestCase):
                               oracle.training_frequency
                               )
 
-        controller_configuration = ControllerConfiguration({
+        controller_configuration = {
             'start_date': simulation_start.strftime('%Y-%m-%d'),
             'end_date': simulation_end.strftime('%Y-%m-%d')
-        })
+        }
 
         temp_dir = TemporaryDirectory()
         oracle_performance = OraclePerformance(
@@ -316,10 +315,10 @@ class TestController(unittest.TestCase):
                               oracle.training_frequency
                               )
 
-        controller_configuration = ControllerConfiguration({
+        controller_configuration = {
             'start_date': simulation_start.strftime('%Y-%m-%d'),
             'end_date': simulation_end.strftime('%Y-%m-%d')
-        })
+        }
 
         temp_dir = TemporaryDirectory()
         oracle_performance = OraclePerformance(
@@ -396,10 +395,10 @@ class TestController(unittest.TestCase):
                               oracle.training_frequency
                               )
 
-        controller_configuration = ControllerConfiguration({
+        controller_configuration = {
             'start_date': simulation_start.strftime('%Y-%m-%d'),
             'end_date': simulation_end.strftime('%Y-%m-%d')
-        })
+        }
 
         temp_dir = TemporaryDirectory()
         oracle_performance = OraclePerformance(
@@ -437,16 +436,19 @@ class TestController(unittest.TestCase):
             scheduling_configuration=scheduling_config
         )
 
-        scheduler = Scheduler(simulation_start,
-                              simulation_end,
-                              calendar_name,
-                              oracle.prediction_frequency,
-                              oracle.training_frequency
-                              )
-        controller_configuration = ControllerConfiguration({
+        scheduler = Scheduler(
+            simulation_start,
+            simulation_end,
+            calendar_name,
+            oracle.prediction_frequency,
+            oracle.training_frequency
+        )
+
+        controller_configuration = {
             'start_date': simulation_start.strftime('%Y-%m-%d'),
             'end_date': simulation_end.strftime('%Y-%m-%d')
-        })
+        }
+
         oracle_performance = OraclePerformance(
             temp_dir.name, 'test'
         )

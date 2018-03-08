@@ -13,7 +13,7 @@ from alphai_delphi.data_source.utils import logtime
 
 HDF5Cache = namedtuple('HDF5Cache', 'start end content')
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 
 class StocksHDF5DataSource(AbstractDataSource):

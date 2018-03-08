@@ -1,4 +1,5 @@
 from enum import Enum
+
 from marshmallow import Schema, fields
 from marshmallow_enum import EnumField
 
@@ -6,7 +7,6 @@ from alphai_delphi.scheduler.abstract_scheduler import SchedulingFrequencyType
 
 
 class PredictionHorizonUnit(Enum):
-
     days = 'days'
     seconds = 'seconds'
     microseconds = 'microseconds'
@@ -55,13 +55,11 @@ class SchedulingConfigurationSchema(BaseSchema):
 
 
 class PredictionHorizonConfigurationSchema(BaseSchema):
-
     unit = EnumField(PredictionHorizonUnit, required=True)
     value = fields.Integer()
 
 
 class DataTransformationConfigurationSchema(BaseSchema):
-
     feature_config_list = fields.List(fields.Dict)
     features_ndays = fields.Integer()
     features_resample_minutes = fields.Integer()
@@ -78,10 +76,15 @@ class OracleConfigurationSchema(BaseSchema):
     model = fields.Dict()
     universe = fields.Dict(required=False, allow_none=True)
 
+
 class ControllerConfigurationSchema(BaseSchema):
     """
     start_date: the start date of the simulation
     end_date : the end date of the simulation
     """
-    start_date = fields.DateTime(required=True)
-    end_date = fields.DateTime(required=True)
+    start_date = fields.Date(required=True)
+    end_date = fields.Date(required=True)
+
+
+class InvalidConfiguration(Exception):
+    pass

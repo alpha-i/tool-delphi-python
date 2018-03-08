@@ -3,7 +3,7 @@ import time
 
 from functools import wraps
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 
 def logtime(f):
