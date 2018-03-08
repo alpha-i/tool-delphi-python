@@ -21,7 +21,8 @@ from alphai_time_series.performance_trials.calculator import Calculator
 
 sns.set_context("talk")
 
-logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 INFLATION_FACTOR = 1.1
 DEFLATION_FACTOR = 0.9

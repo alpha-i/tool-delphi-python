@@ -31,8 +31,8 @@ class BaseSchema(Schema):
 class SchedulingFrequencySchema(BaseSchema):
     """
     frequency_type: the type of frequency
-    minutes_offset: minutes offset from the market opening
-    days_offset : days offset from the beginning of the week
+    minutes_offset: minutes offset from the opening
+    days_offset : days offset from the beginning of the week (0 for Monday, 1 for Tuesday...)
     """
     frequency_type = EnumField(SchedulingFrequencyType, required=True)
     minutes_offset = fields.Integer(default=0)
@@ -40,18 +40,8 @@ class SchedulingFrequencySchema(BaseSchema):
 
 
 class SchedulingConfigurationSchema(BaseSchema):
-    """
-    prediction_horizon: how many HOURS in the future you want to predict
-
-    prediction_frequency: The object which defines the scheduling
-    prediction_delta: how many DAYS of data are needed for the prediction
-
-    training_frequency:the type of frequency for training
-    training_delta: how many DAYS of data are needed for the training
-    """
-
-    prediction_frequency = fields.Nested(SchedulingFrequencySchema(), required=True)
-    training_frequency = fields.Nested(SchedulingFrequencySchema(), required=True)
+    prediction_frequency = fields.Nested(SchedulingFrequencySchema, required=True)
+    training_frequency = fields.Nested(SchedulingFrequencySchema, required=True)
 
 
 class PredictionHorizonConfigurationSchema(BaseSchema):

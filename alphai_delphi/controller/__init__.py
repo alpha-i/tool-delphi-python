@@ -8,7 +8,8 @@ from alphai_delphi.controller.abstract_controller import AbstractController
 from alphai_delphi.oracle.abstract_oracle import OracleAction
 from alphai_delphi.scheduler.scheduler import ScheduleException
 
-logger = logging.getLogger(__name__).addHandler(logging.NullHandler())
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 
 class Controller(AbstractController):
