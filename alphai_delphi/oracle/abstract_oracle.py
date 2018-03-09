@@ -43,10 +43,10 @@ class AbstractOracle(metaclass=ABCMeta):
 
         self.scheduling = self._init_config(scheduling_configuration, SchedulingConfigurationSchema)
         self.config = self._init_config(oracle_configuration, OracleConfigurationSchema)
-        self.prediction_horizon = self._init_time_delta(self.config.prediction_horizon)
+        self.prediction_horizon = self._init_time_delta(self.config['prediction_horizon'])
 
-        self.prediction_delta = self._init_time_delta(self.config.prediction_delta)
-        self.training_delta = self._init_time_delta(self.config.training_delta)
+        self.prediction_delta = self._init_time_delta(self.config['prediction_delta'])
+        self.training_delta = self._init_time_delta(self.config['training_delta'])
 
         self.calendar_name = calendar_name
 
@@ -76,9 +76,9 @@ class AbstractOracle(metaclass=ABCMeta):
         :return timedelta:
         """
 
-        unit = TimeDeltaUnit(prediction_horizon.unit).value
+        unit = TimeDeltaUnit(prediction_horizon['unit']).value
 
-        return timedelta(**{unit: prediction_horizon.value})
+        return timedelta(**{unit: prediction_horizon['value']})
 
     @abstractmethod
     def _sanity_check(self):
@@ -188,7 +188,7 @@ class AbstractOracle(metaclass=ABCMeta):
 
         :rtype: SchedulingFrequency
         """
-        return self.scheduling.training_frequency
+        return self.scheduling['training_frequency']
 
     @property
     def prediction_frequency(self):
@@ -197,7 +197,7 @@ class AbstractOracle(metaclass=ABCMeta):
 
         :rtype: SchedulingFrequency
         """
-        return self.scheduling.prediction_frequency
+        return self.scheduling['prediction_frequency']
 
     @property
     def prediction_offset(self):
@@ -205,7 +205,7 @@ class AbstractOracle(metaclass=ABCMeta):
         Amount of time from the market open
         :rtype: datetime.timedelta
         """
-        return self.scheduling.prediction_offset
+        return self.scheduling['prediction_offset']
 
     @property
     @abstractmethod
