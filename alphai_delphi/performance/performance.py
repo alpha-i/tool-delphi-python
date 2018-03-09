@@ -15,6 +15,7 @@ from alphai_delphi.performance.oracle import (
 )
 
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 # We want to hide the number of NaturalNameWarning warnings when we format the column names
 # according to the `TIMESTAMP_FORMAT`.
 warnings.simplefilter(action='ignore', category=NaturalNameWarning)

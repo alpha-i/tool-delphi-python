@@ -1,7 +1,19 @@
+from enum import Enum
+
 from marshmallow import Schema, fields
 from marshmallow_enum import EnumField
 
 from alphai_delphi.scheduler.abstract_scheduler import SchedulingFrequencyType
+
+
+class TimeDeltaUnit(Enum):
+    days = 'days'
+    seconds = 'seconds'
+    microseconds = 'microseconds'
+    milliseconds = 'milliseconds'
+    minutes = 'minutes'
+    hours = 'hours'
+    weeks = 'weeks'
 
 
 class AttributeDict(dict):
@@ -19,31 +31,40 @@ class BaseSchema(Schema):
 class SchedulingFrequencySchema(BaseSchema):
     """
     frequency_type: the type of frequency
-    minutes_offset: minutes offset from the market opening
-    days_offset : days offset from the beginning of the week
+    minutes_offset: minutes offset from the opening
+    days_offset : days offset from the beginning of the week (0 for Monday, 1 for Tuesday...)
     """
     frequency_type = EnumField(SchedulingFrequencyType, required=True)
     minutes_offset = fields.Integer(default=0)
     days_offset = fields.Integer(default=0)
 
 
-class OracleSchedulingConfigurationSchema(BaseSchema):
-    """
-    prediction_horizon: how many HOURS in the future you want to predict
+class SchedulingConfigurationSchema(BaseSchema):
+    prediction_frequency = fields.Nested(SchedulingFrequencySchema, required=True)
+    training_frequency = fields.Nested(SchedulingFrequencySchema, required=True)
 
-    prediction_frequency: The object which defines the scheduling
-    prediction_delta: how many DAYS of data are needed for the prediction
 
-    training_frequency:the type of frequency for training
-    training_delta: how many DAYS of data are needed for the training
-    """
-    prediction_horizon = fields.TimeDelta(precision='hours', required=True)
+class TimeDeltaConfigurationSchema(BaseSchema):
+    unit = EnumField(TimeDeltaUnit, required=True)
+    value = fields.Integer()
 
-    prediction_frequency = fields.Nested(SchedulingFrequencySchema(), required=True)
-    prediction_delta = fields.TimeDelta(precision='days', required=True)
 
-    training_frequency = fields.Nested(SchedulingFrequencySchema(), required=True)
-    training_delta = fields.TimeDelta(precision='days', required=True)
+class DataTransformationConfigurationSchema(BaseSchema):
+    feature_config_list = fields.List(fields.Dict)
+    features_ndays = fields.Integer()
+    features_resample_minutes = fields.Integer()
+    fill_limit = fields.Integer()
+
+
+class OracleConfigurationSchema(BaseSchema):
+    prediction_delta = fields.Nested(TimeDeltaConfigurationSchema)
+    training_delta = fields.Nested(TimeDeltaConfigurationSchema)
+
+    prediction_horizon = fields.Nested(TimeDeltaConfigurationSchema)
+    data_transformation = fields.Nested(DataTransformationConfigurationSchema)
+
+    model = fields.Dict()
+    universe = fields.Dict(required=False, allow_none=True)
 
 
 class ControllerConfigurationSchema(BaseSchema):
@@ -51,5 +72,9 @@ class ControllerConfigurationSchema(BaseSchema):
     start_date: the start date of the simulation
     end_date : the end date of the simulation
     """
-    start_date = fields.DateTime(required=True)
-    end_date = fields.DateTime(required=True)
+    start_date = fields.Date(required=True)
+    end_date = fields.Date(required=True)
+
+
+class InvalidConfiguration(Exception):
+    pass

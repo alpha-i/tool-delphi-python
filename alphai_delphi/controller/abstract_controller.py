@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
+from alphai_delphi.configuration.schemas import ControllerConfigurationSchema, InvalidConfiguration
 from alphai_delphi.performance.performance import OraclePerformance
 
 
@@ -7,7 +8,7 @@ class AbstractController(metaclass=ABCMeta):
     def __init__(self, configuration, oracle, datasource, scheduler, performance):
         """
         :param configuration:
-        :type configuration: ControllerConfiguration
+        :type configuration: dict
         :param oracle: The oracle to run
         :type oracle: AbstractOracle
         :param datasource: The source of the data
@@ -17,7 +18,10 @@ class AbstractController(metaclass=ABCMeta):
         :param performance: the performance class
         :type performance: OraclePerformance
         """
-        self.configuration = configuration
+        data, errors = ControllerConfigurationSchema().load(configuration)
+        if errors:
+            raise InvalidConfiguration(errors)
+        self.configuration = data
         self.oracle = oracle
         self.datasource = datasource
         self.scheduler = scheduler

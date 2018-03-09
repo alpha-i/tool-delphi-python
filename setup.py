@@ -6,14 +6,14 @@ setup(
     description='Delphi: Alpha-I Prototype Environment',
     author='Gabriele Alese, Richard Mason, Daniele Murroni',
     author_email='gabriele.alese@alpha-i.co, richard.mason@alpha-i.co, daniele.murroni@alpha-i.co',
-    version='1.1.8',
+    version='2.0.0',
     packages=find_packages(exclude=['doc', 'tests*']),
     install_requires=[
         "numpy",
         "pandas",
         "tables",
         "pytz",
-        "pandas-market-calendars==0.13",
+        "alphai_calendars",
         "alphai_finance==2.0.0",
         "alphai-time-series==0.0.4",
         "matplotlib>=1.5.0",
@@ -28,5 +28,6 @@ setup(
     dependency_links=[
         'https://pypi.fury.io/zNzsk7gQsYY335HLzW9x/alpha-i/alphai_finance/',
         'https://pypi.fury.io/zNzsk7gQsYY335HLzW9x/alpha-i/performance_analysis/',
+        'https://pypi.fury.io/zNzsk7gQsYY335HLzW9x/alpha-i/alphai_calendars/',
         ]
 )
