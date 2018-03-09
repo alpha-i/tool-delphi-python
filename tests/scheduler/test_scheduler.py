@@ -1,7 +1,8 @@
-from alphai_delphi.oracle import OracleAction
-from alphai_delphi.scheduler import Scheduler
-from alphai_delphi.scheduler.abstract_scheduler import SchedulingFrequency, SchedulingFrequencyType
 from pandas import Timestamp
+
+from alphai_delphi.scheduler.scheduler import Scheduler
+from alphai_delphi.scheduler.abstract_scheduler import SchedulingFrequency, SchedulingFrequencyType
+from alphai_delphi.oracle.abstract_oracle import OracleAction
 
 import datetime
 import pytz
@@ -11,8 +12,7 @@ def test_weekly_prediction_and_training_scheduler():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 11, 6, tzinfo=pytz.utc),
         end_date=datetime.datetime(2017, 11, 21, tzinfo=pytz.utc),
-        exchange_name='NYSE',
-        prediction_horizon=datetime.timedelta(days=1),
+        calendar_name='NYSE',
         prediction_frequency=SchedulingFrequency(
             frequency_type=SchedulingFrequencyType.WEEKLY, days_offset=0, minutes_offset=30
         ),  # every Monday, 30m after market start
@@ -31,8 +31,7 @@ def test_weekly_prediction_scheduler_starting_on_tuesday():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 11, 6, tzinfo=pytz.utc),
         end_date=datetime.datetime(2017, 11, 21, tzinfo=pytz.utc),
-        exchange_name='NYSE',
-        prediction_horizon=datetime.timedelta(days=1),
+        calendar_name='NYSE',
         prediction_frequency=SchedulingFrequency(
             frequency_type=SchedulingFrequencyType.WEEKLY, days_offset=1, minutes_offset=30
         ),  # every Tuesday, 30m after market start
@@ -55,8 +54,7 @@ def test_weekly_prediction_scheduler_with_a_public_holiday():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 12, 20, tzinfo=pytz.utc),
         end_date=datetime.datetime(2018, 1, 3, tzinfo=pytz.utc),
-        exchange_name='NYSE',
-        prediction_horizon=datetime.timedelta(days=1),
+        calendar_name='NYSE',
         prediction_frequency=SchedulingFrequency(
             frequency_type=SchedulingFrequencyType.WEEKLY, days_offset=0, minutes_offset=15
         ),  # every Monday, 15m after market start
@@ -82,8 +80,7 @@ def test_daily_prediction_scheduler():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 12, 20, tzinfo=pytz.utc),
         end_date=datetime.datetime(2018, 1, 3, tzinfo=pytz.utc),
-        exchange_name='NYSE',
-        prediction_horizon=datetime.timedelta(days=1),
+        calendar_name='NYSE',
         prediction_frequency=SchedulingFrequency(
             frequency_type=SchedulingFrequencyType.DAILY, minutes_offset=15
         ),  # every day, 15m after market start
@@ -109,8 +106,7 @@ def test_minute_prediction_scheduler():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 12, 20, 15, 0, tzinfo=pytz.utc),
         end_date=datetime.datetime(2017, 12, 20, 18, 0, tzinfo=pytz.utc),
-        exchange_name='NYSE',
-        prediction_horizon=datetime.timedelta(days=1),
+        calendar_name='NYSE',
         prediction_frequency=SchedulingFrequency(frequency_type=SchedulingFrequencyType.MINUTE),
         training_frequency=SchedulingFrequency(frequency_type=SchedulingFrequencyType.MINUTE)
     )
@@ -123,8 +119,7 @@ def test_scheduler_works_as_iterator():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 11, 6, tzinfo=pytz.utc),
         end_date=datetime.datetime(2017, 11, 21, tzinfo=pytz.utc),
-        exchange_name='NYSE',
-        prediction_horizon=datetime.timedelta(days=1),
+        calendar_name='NYSE',
         prediction_frequency=SchedulingFrequency(
             frequency_type=SchedulingFrequencyType.WEEKLY, days_offset=1, minutes_offset=30
         ),  # every Tuesday, 30m after market start
@@ -142,8 +137,7 @@ def test_scheduler_checks_for_valid_prediction_target():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 12, 20, tzinfo=pytz.utc),
         end_date=datetime.datetime(2018, 1, 3, tzinfo=pytz.utc),
-        exchange_name='NYSE',
-        prediction_horizon=datetime.timedelta(days=1),
+        calendar_name='NYSE',
         prediction_frequency=SchedulingFrequency(
             frequency_type=SchedulingFrequencyType.DAILY, minutes_offset=15
         ),  # every day, 15m after market start
@@ -164,8 +158,7 @@ def test_scheduler_checks_for_valid_prediction_target_with_early_close():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 11, 1, tzinfo=pytz.utc),
         end_date=datetime.datetime(2018, 1, 3, tzinfo=pytz.utc),
-        exchange_name='NYSE',
-        prediction_horizon=datetime.timedelta(days=1),
+        calendar_name='NYSE',
         prediction_frequency=SchedulingFrequency(
             frequency_type=SchedulingFrequencyType.DAILY, minutes_offset=15
         ),  # every day, 15m after market start

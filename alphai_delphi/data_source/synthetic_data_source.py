@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import pandas_market_calendars as mcal
 
-from alphai_delphi.data_source import AbstractDataSource
+from alphai_delphi import AbstractDataSource
 
 
 def _make_zero_series(x_array):

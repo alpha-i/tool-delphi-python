@@ -1,21 +1,22 @@
 import logging
-from datetime import timedelta
 from datetime import datetime
+from datetime import timedelta
 
 import numpy as np
 
 from alphai_delphi.controller.abstract_controller import AbstractController
-from alphai_delphi.controller.controller_configuration import ControllerConfiguration
-from alphai_delphi.oracle import OracleAction
-from alphai_delphi.scheduler import ScheduleException
+from alphai_delphi.oracle.abstract_oracle import OracleAction
+from alphai_delphi.scheduler.scheduler import ScheduleException
 
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 
 class Controller(AbstractController):
     def __init__(self, configuration, oracle, datasource, scheduler, performance):
         super().__init__(configuration, oracle, datasource, scheduler, performance)
         self.elapsed_time = None
+        self.start_time = None
 
     def run(self):
         self.start_time = datetime.now()
@@ -31,14 +32,16 @@ class Controller(AbstractController):
 
                 elif action == OracleAction.PREDICT:
                     try:
-                        target_moment = self.scheduler.get_first_valid_target(prediction_moment, self.oracle.prediction_horizon)
+                        target_moment = self.scheduler.get_first_valid_target(prediction_moment,
+                                                                              self.oracle.prediction_horizon)
                     except ScheduleException as e:
                         logger.debug(e)
                         continue
                     prediction_result = self._do_predict(raw_data, prediction_moment, target_moment)
                     if prediction_result:
                         self.prediction_moments.append(
-                            (prediction_moment, prediction_result.prediction_timestamp, prediction_result.target_timestamp)
+                            (prediction_moment, prediction_result.prediction_timestamp,
+                             prediction_result.target_timestamp)
                         )
         self.end_time = datetime.now()
         self.elapsed_time = self.end_time - self.start_time
@@ -100,8 +103,8 @@ class Controller(AbstractController):
         try:
             prediction_result = self.oracle.predict(raw_data, current_moment, target_moment)
             self.prediction_results.append(prediction_result)
-            self._record_prediction(self.oracle.target_feature, prediction_result)
-            self._record_actual_performance(self.oracle.target_feature, prediction_result.target_timestamp)
+            self._record_prediction(self.oracle.target_feature_name, prediction_result)
+            self._record_actual_performance(self.oracle.target_feature_name, prediction_result.target_timestamp)
             logger.info("END prediction at {}".format(current_moment))
         except Exception as e:
             logger.error("SKIP prediction. Reason {}".format(e))
@@ -154,10 +157,12 @@ class Controller(AbstractController):
         logger.info("**************************")
         logger.info("*** RUN OF {} FINISHED ***".format(self.name))
         logger.info("From {} to {}".format(self.simulation_start, self.simulation_end))
-        logger.info("Symbols: for every calendar month, we select the 400 symbols with the largest cumulative volume traded over the previous 30 days")
+        logger.info(
+            "Symbols: for every calendar month, we select the 400 symbols with the largest cumulative volume traded over the previous 30 days")
         logger.info("Time elapsed: {}".format(self.elapsed_time))
         logger.info("Prediction moments: ")
-        logger.info("{0:<50} {1:<50} {2:<50}".format("Prediction moment", "Prediction Window Start", "Prediction Window End"))
+        logger.info(
+            "{0:<50} {1:<50} {2:<50}".format("Prediction moment", "Prediction Window Start", "Prediction Window End"))
         for item in self.prediction_moments:
             logger.info("{0:<50} {1:<50} {2:<50}".format(str(item[0]), str(item[1]), str(item[2])))
         logger.info("**************************")

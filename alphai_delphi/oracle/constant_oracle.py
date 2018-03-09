@@ -25,7 +25,11 @@ class ConstantOracle(AbstractOracle):
 
     @property
     def target_feature(self):
-        return self.config.target_feature
+        return self.config.model['target_feature']
+
+    @property
+    def target_feature_name(self):
+        return self.config.model['target_feature']
 
     def save(self):
         pass
@@ -37,7 +41,7 @@ class ConstantOracle(AbstractOracle):
         pass
 
     def predict(self, data, current_timestamp, target_timestamp):
-        constant_variance = self.config["constant_variance"]
+        constant_variance = self.config.model['constant_variance']
 
         symbols = data['close'].columns
         num_symbols = len(symbols)
