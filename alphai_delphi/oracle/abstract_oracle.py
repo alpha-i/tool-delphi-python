@@ -5,7 +5,7 @@ from enum import Enum
 from pandas.core.base import DataError
 
 from alphai_delphi.configuration.schemas import SchedulingConfigurationSchema, OracleConfigurationSchema, \
-    PredictionHorizonUnit, InvalidConfiguration
+    TimeDeltaUnit, InvalidConfiguration
 
 
 class OracleAction(Enum):
@@ -43,7 +43,11 @@ class AbstractOracle(metaclass=ABCMeta):
 
         self.scheduling = self._init_config(scheduling_configuration, SchedulingConfigurationSchema)
         self.config = self._init_config(oracle_configuration, OracleConfigurationSchema)
-        self.prediction_horizon = self._init_prediction_horizon(self.config.prediction_horizon)
+        self.prediction_horizon = self._init_time_delta(self.config.prediction_horizon)
+
+        self.prediction_delta = self._init_time_delta(self.config.prediction_delta)
+        self.training_delta = self._init_time_delta(self.config.training_delta)
+
         self.calendar_name = calendar_name
 
         self._sanity_check()
@@ -64,7 +68,7 @@ class AbstractOracle(metaclass=ABCMeta):
 
         return validated_object
 
-    def _init_prediction_horizon(self, prediction_horizon):
+    def _init_time_delta(self, prediction_horizon):
         """
         build the timedelta from prediction horizon object
 
@@ -72,7 +76,7 @@ class AbstractOracle(metaclass=ABCMeta):
         :return timedelta:
         """
 
-        unit = PredictionHorizonUnit(prediction_horizon.unit).value
+        unit = TimeDeltaUnit(prediction_horizon.unit).value
 
         return timedelta(**{unit: prediction_horizon.value})
 
@@ -207,6 +211,15 @@ class AbstractOracle(metaclass=ABCMeta):
     @abstractmethod
     def target_feature(self):
         """
+        This is the feature that will be predicted (Must be present in the input data too)
+        :rtype: Feature
+        """
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
+    def target_feature_name(self):
+        """
         This is the feature name that will be predicted (Must be present in the input data too)
         :rtype: str
         """
@@ -222,8 +235,8 @@ class AbstractOracle(metaclass=ABCMeta):
         :rtype: datetime.timedelta
         """
         if event == OracleAction.PREDICT:
-            return self.config.prediction_delta
+            return self.prediction_delta
         elif event == OracleAction.TRAIN:
-            return self.config.training_delta
+            return self.training_delta
 
         raise ValueError("Event type {} not supported".format(event))

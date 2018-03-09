@@ -6,7 +6,7 @@ from marshmallow_enum import EnumField
 from alphai_delphi.scheduler.abstract_scheduler import SchedulingFrequencyType
 
 
-class PredictionHorizonUnit(Enum):
+class TimeDeltaUnit(Enum):
     days = 'days'
     seconds = 'seconds'
     microseconds = 'microseconds'
@@ -44,8 +44,8 @@ class SchedulingConfigurationSchema(BaseSchema):
     training_frequency = fields.Nested(SchedulingFrequencySchema, required=True)
 
 
-class PredictionHorizonConfigurationSchema(BaseSchema):
-    unit = EnumField(PredictionHorizonUnit, required=True)
+class TimeDeltaConfigurationSchema(BaseSchema):
+    unit = EnumField(TimeDeltaUnit, required=True)
     value = fields.Integer()
 
 
@@ -57,10 +57,10 @@ class DataTransformationConfigurationSchema(BaseSchema):
 
 
 class OracleConfigurationSchema(BaseSchema):
-    prediction_delta = fields.Integer()
-    training_delta = fields.Integer()
+    prediction_delta = fields.Nested(TimeDeltaConfigurationSchema)
+    training_delta = fields.Nested(TimeDeltaConfigurationSchema)
 
-    prediction_horizon = fields.Nested(PredictionHorizonConfigurationSchema)
+    prediction_horizon = fields.Nested(TimeDeltaConfigurationSchema)
     data_transformation = fields.Nested(DataTransformationConfigurationSchema)
 
     model = fields.Dict()
