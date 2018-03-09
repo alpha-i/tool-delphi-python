@@ -1,4 +1,3 @@
-from collections import defaultdict
 from enum import Enum
 
 from alphai_delphi.scheduler.abstract_scheduler import SchedulingFrequencyType
@@ -14,20 +13,6 @@ class TimeDeltaUnit(Enum):
     minutes = 'minutes'
     hours = 'hours'
     weeks = 'weeks'
-
-
-class AttributeDict(defaultdict):
-    def __init__(self, *args, **kwargs):
-        super(AttributeDict, self).__init__(*args, **kwargs)
-
-    def __getattr__(self, key):
-        try:
-            return self[key]
-        except KeyError:
-            raise AttributeError(key)
-
-    def __setattr__(self, key, value):
-        self[key] = value
 
 
 class BaseSchema(Schema):
