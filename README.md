@@ -1,25 +1,14 @@
-Alpha-i Prototype Environment
+Delphi – The runner of oracles
 =============
 A tool to help the development and testing of new machine learning models
 
-Directory Structure
---------------------
-```text
-doc/ #project documentation
-
-tests/ #test
-prototype_env/ #real package name (it changes on each project)
-README.md #this file
-requirements.txt #list of dependencies
-
-```
 Setup Development Environment
 -----------------------------
 
 ###Create conda environment
 ```bash
-$ conda create -n prototype-env python=3.5
-$ source activate prototype-env
+$ conda create -n delphi-env python=3.5
+$ source activate delphi-env
 ```
 ###Install dependencies
 ```bash
@@ -29,7 +18,7 @@ $ pip install -r dev-requirements.txt
 
 ###Running the test suite
 ```bash
-$ PYTHONPATH=. pytest tests/
+$ pytest tests/
 ```
 
 Documentation
