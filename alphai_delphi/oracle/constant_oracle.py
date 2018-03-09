@@ -27,6 +27,10 @@ class ConstantOracle(AbstractOracle):
     def target_feature(self):
         return self.config.model['target_feature']
 
+    @property
+    def target_feature_name(self):
+        return self.config.model['target_feature']
+
     def save(self):
         pass
 

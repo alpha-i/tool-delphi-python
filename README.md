@@ -32,5 +32,3 @@ To install run
 ```text
 $ python setup.py install
 ```
-
-

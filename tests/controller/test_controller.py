@@ -89,8 +89,14 @@ class TestController(unittest.TestCase):
                 "unit": "days",
                 "value": 10,
             },
-            "prediction_delta": 240,
-            "training_delta": 480,
+            "prediction_delta": {
+                'unit': 'days',
+                'value': 10
+            },
+            "training_delta": {
+                'unit': 'days',
+                'value': 20
+            },
             "model": {
                 "constant_variance": 0.1,
                 "past_horizon": datetime.timedelta(days=7),
@@ -151,8 +157,14 @@ class TestController(unittest.TestCase):
                 "unit": "days",
                 "value": 10,
             },
-            "prediction_delta": 240,
-            "training_delta": 480,
+            "prediction_delta": {
+                'unit': 'days',
+                'value': 10
+            },
+            "training_delta": {
+                'unit': 'days',
+                'value': 20
+            },
             "model": {
                 "constant_variance": 0.1,
                 "past_horizon": datetime.timedelta(days=7),
@@ -210,8 +222,14 @@ class TestController(unittest.TestCase):
                 "unit": "days",
                 "value": 10
             },
-            "prediction_delta": 10,
-            "training_delta": 20,
+            "prediction_delta": {
+                'unit': 'days',
+                'value': 10
+            },
+            "training_delta": {
+                'unit': 'days',
+                'value': 20
+            },
             "model": {
                 "constant_variance": 0.1,
                 "past_horizon": datetime.timedelta(days=7),
@@ -287,8 +305,8 @@ class TestController(unittest.TestCase):
                 "unit": "days",
                 "value": 10
             },
-            "prediction_delta": 10,
-            "training_delta": 20,
+            "prediction_delta": {'unit': 'days', 'value': 10},
+            "training_delta": {'unit': 'days', 'value': 20},
             "model": {
                 "constant_variance": 0.1,
                 "past_horizon": datetime.timedelta(days=7),
@@ -367,8 +385,14 @@ class TestController(unittest.TestCase):
                 "unit": "days",
                 "value": 10
             },
-            "prediction_delta": 10,
-            "training_delta": 20,
+            "prediction_delta": {
+                'unit': 'days',
+                'value': 10
+            },
+            "training_delta": {
+                'unit': 'days',
+                'value': 20
+            },
             "model": {
                 "constant_variance": 0.1,
                 "past_horizon": datetime.timedelta(days=7),

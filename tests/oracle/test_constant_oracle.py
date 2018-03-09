@@ -43,8 +43,14 @@ class TestConstantOracle(TestCase):
                 "unit": "days",
                 "value": 1
             },
-            "training_delta": 24,
-            "prediction_delta": 168,
+            "prediction_delta": {
+                'unit': 'days',
+                'value': 10
+            },
+            "training_delta": {
+                'unit': 'days',
+                'value': 20
+            },
             "model": {
                 "constant_variance": 0.1,
                 "past_horizon": datetime.timedelta(days=7),
