@@ -10,21 +10,6 @@ class SchedulingFrequencyType(Enum):
     NEVER = 3
 
 
-class SchedulingFrequency:
-    def __init__(self, frequency_type, days_offset=0, minutes_offset=0):
-        """
-        :param frequency_type: Type of the scheduling frequency
-        :type frequency_type: SchedulingFrequencyType
-        :param days_offset:
-        :type days_offset: int
-        :param minutes_offset:
-        :type minutes_offset: int
-        """
-        self.frequency_type = frequency_type
-        self.minutes_offset = minutes_offset
-        self.days_offset = days_offset
-
-
 class AbstractScheduler(metaclass=ABCMeta):
     def __init__(self, start_date, end_date,
                  prediction_frequency, training_frequency):
