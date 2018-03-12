@@ -1,9 +1,8 @@
 from enum import Enum
 
+from alphai_delphi.scheduler.abstract_scheduler import SchedulingFrequencyType
 from marshmallow import Schema, fields
 from marshmallow_enum import EnumField
-
-from alphai_delphi.scheduler.abstract_scheduler import SchedulingFrequencyType
 
 
 class TimeDeltaUnit(Enum):
@@ -16,16 +15,8 @@ class TimeDeltaUnit(Enum):
     weeks = 'weeks'
 
 
-class AttributeDict(dict):
-    __getattr__ = dict.get
-    __setattr__ = dict.__setitem__
-    __delattr__ = dict.__delitem__
-
-
 class BaseSchema(Schema):
-    @property
-    def dict_class(self):
-        return AttributeDict
+    pass
 
 
 class SchedulingFrequencySchema(BaseSchema):
@@ -49,19 +40,12 @@ class TimeDeltaConfigurationSchema(BaseSchema):
     value = fields.Integer()
 
 
-class DataTransformationConfigurationSchema(BaseSchema):
-    feature_config_list = fields.List(fields.Dict)
-    features_ndays = fields.Integer()
-    features_resample_minutes = fields.Integer()
-    fill_limit = fields.Integer()
-
-
 class OracleConfigurationSchema(BaseSchema):
     prediction_delta = fields.Nested(TimeDeltaConfigurationSchema)
     training_delta = fields.Nested(TimeDeltaConfigurationSchema)
 
     prediction_horizon = fields.Nested(TimeDeltaConfigurationSchema)
-    data_transformation = fields.Nested(DataTransformationConfigurationSchema)
+    data_transformation = fields.Dict()
 
     model = fields.Dict()
     universe = fields.Dict(required=False, allow_none=True)
