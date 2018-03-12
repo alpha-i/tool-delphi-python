@@ -58,22 +58,22 @@ class Scheduler(AbstractScheduler):
         :return:
         """
         schedule = self.calendar.schedule(self.start_date, self.end_date)
-        if scheduling_frequency.frequency_type == SchedulingFrequencyType.WEEKLY:
-            scheduled_days = self._get_scheduled_days(scheduling_frequency.days_offset)
+        if scheduling_frequency['frequency_type'] == SchedulingFrequencyType.WEEKLY:
+            scheduled_days = self._get_scheduled_days(scheduling_frequency['days_offset'])
 
             for day in scheduled_days:
                 market_open = schedule.loc[day, "market_open"]
-                scheduled_time = market_open + datetime.timedelta(minutes=scheduling_frequency.minutes_offset)
+                scheduled_time = market_open + datetime.timedelta(minutes=scheduling_frequency['minutes_offset'])
                 self.schedule[scheduled_time].append(action)
 
-        elif scheduling_frequency.frequency_type == SchedulingFrequencyType.DAILY:
+        elif scheduling_frequency['frequency_type'] == SchedulingFrequencyType.DAILY:
             market_days = self.calendar.valid_days(self.start_date, self.end_date)
             for day in market_days:
                 market_open = schedule.loc[day, "market_open"]
-                scheduled_time = market_open + datetime.timedelta(minutes=scheduling_frequency.minutes_offset)
+                scheduled_time = market_open + datetime.timedelta(minutes=scheduling_frequency['minutes_offset'])
                 self.schedule[scheduled_time].append(action)
 
-        elif scheduling_frequency.frequency_type == SchedulingFrequencyType.MINUTE:
+        elif scheduling_frequency['frequency_type']== SchedulingFrequencyType.MINUTE:
             for day in self.calendar.valid_days(self.start_date, self.end_date):
                 market_open = schedule.loc[day, "market_open"]
                 market_close = schedule.loc[day, "market_close"]
