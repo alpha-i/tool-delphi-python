@@ -41,13 +41,13 @@ class TimeDeltaConfigurationSchema(BaseSchema):
 
 
 class OracleConfigurationSchema(BaseSchema):
-    prediction_delta = fields.Nested(TimeDeltaConfigurationSchema)
-    training_delta = fields.Nested(TimeDeltaConfigurationSchema)
+    prediction_delta = fields.Nested(TimeDeltaConfigurationSchema, required=True)
+    training_delta = fields.Nested(TimeDeltaConfigurationSchema, required=True)
 
-    prediction_horizon = fields.Nested(TimeDeltaConfigurationSchema)
-    data_transformation = fields.Dict()
+    prediction_horizon = fields.Nested(TimeDeltaConfigurationSchema, required=True)
+    data_transformation = fields.Dict(required=True)
 
-    model = fields.Dict()
+    model = fields.Dict(required=True)
     universe = fields.Dict(required=False, allow_none=True)
 
 
