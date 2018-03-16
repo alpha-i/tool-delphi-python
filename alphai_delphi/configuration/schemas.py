@@ -26,8 +26,8 @@ class SchedulingFrequencySchema(BaseSchema):
     days_offset : days offset from the beginning of the week (0 for Monday, 1 for Tuesday...)
     """
     frequency_type = EnumField(SchedulingFrequencyType, required=True)
-    minutes_offset = fields.Integer(default=0)
-    days_offset = fields.Integer(default=0)
+    minutes_offset = fields.Integer(default=0, missing=0)
+    days_offset = fields.Integer(default=0, missing=0)
 
 
 class SchedulingConfigurationSchema(BaseSchema):

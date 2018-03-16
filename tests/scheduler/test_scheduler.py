@@ -173,3 +173,35 @@ def test_scheduler_checks_for_valid_prediction_target_with_early_close():
     )
 
     assert prediction_target == datetime.datetime(2017, 11, 24, 16, 0, tzinfo=pytz.UTC)
+
+
+def test_scheduler_monthly():
+    test_scheduler = Scheduler(
+        start_date=datetime.datetime(2017, 11, 1, tzinfo=pytz.utc),
+        end_date=datetime.datetime(2018, 2, 3, tzinfo=pytz.utc),
+        calendar_name='NYSE',
+        prediction_frequency=dict(frequency_type=SchedulingFrequencyType.MONTHLY, days_offset=0),
+        training_frequency=dict(frequency_type=SchedulingFrequencyType.MONTHLY, days_offset=0),
+    )
+
+    assert sorted(list(test_scheduler.schedule.keys())) == [
+        Timestamp('2017-11-01 13:30:00+0000', tz='UTC'),
+        Timestamp('2017-12-01 14:30:00+0000', tz='UTC'),
+        Timestamp('2018-01-02 14:30:00+0000', tz='UTC'),
+        Timestamp('2018-02-01 14:30:00+0000', tz='UTC'),
+    ]
+
+    test_scheduler = Scheduler(
+        start_date=datetime.datetime(2017, 11, 1, tzinfo=pytz.utc),
+        end_date=datetime.datetime(2018, 2, 3, tzinfo=pytz.utc),
+        calendar_name='NYSE',
+        prediction_frequency=dict(frequency_type=SchedulingFrequencyType.MONTHLY, days_offset=-1),
+        training_frequency=dict(frequency_type=SchedulingFrequencyType.MONTHLY, days_offset=-1),
+    )
+
+    assert sorted(list(test_scheduler.schedule.keys())) == [
+        Timestamp('2017-11-30 14:30:00+0000', tz='UTC'),
+        Timestamp('2017-12-29 14:30:00+0000', tz='UTC'),
+        Timestamp('2018-01-31 14:30:00+0000', tz='UTC'),
+        Timestamp('2018-02-28 14:30:00+0000', tz='UTC'),
+    ]
