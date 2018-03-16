@@ -8,6 +8,7 @@ class SchedulingFrequencyType(Enum):
     MINUTE = 1
     WEEKLY = 2
     NEVER = 3
+    MONTHLY = 4
 
 
 class AbstractScheduler(metaclass=ABCMeta):
