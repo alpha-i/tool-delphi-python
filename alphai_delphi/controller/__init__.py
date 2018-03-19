@@ -52,7 +52,7 @@ class Controller(AbstractController):
 
     def get_market_interval(self, moment, oracle_interval):
         """
-        Given a moment and an interval from the oracle, it calculates a correct business day intervall
+        Given a moment and an interval from the oracle, it calculates a correct business day interval
         It always add 1 day more to the interval to prevent any missing data on the datasource.
         It's safe to give one day more.
 
@@ -64,7 +64,16 @@ class Controller(AbstractController):
 
         schedule_start = moment - oracle_interval * 5
         full_schedule = self.scheduler.calendar.schedule(schedule_start, moment)
-        new_day = full_schedule.index[-oracle_interval.days]
+
+        sum_of_day_delta_between_index = 0
+
+        for i in range(1, len(full_schedule.index) - 1):
+            sum_of_day_delta_between_index += (full_schedule.iloc[i].name - full_schedule.iloc[i-1].name).days
+
+        average_days = max(int(sum_of_day_delta_between_index / len(full_schedule.index)), 1)
+
+        index_delta = np.floor(oracle_interval.days / average_days)
+        new_day = full_schedule.index[-int(index_delta)]
 
         new_interval = moment.date() - new_day.date()
 

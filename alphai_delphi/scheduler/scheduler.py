@@ -164,7 +164,7 @@ class Scheduler(AbstractScheduler):
                 first, last = calendar.monthrange(first_day_of_the_month.year, first_day_of_the_month.month)
                 new_day = first_day_of_the_month.replace(day=last)
 
-            monthly_schedule.append(new_day.date())
+            monthly_schedule.append(new_day)
 
         if is_offset_positive:
             end_date = self.end_date
