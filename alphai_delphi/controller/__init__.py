@@ -24,7 +24,7 @@ class Controller(AbstractController):
         for prediction_moment, events in self.scheduler:
             for action in events:
                 oracle_interval = self.oracle.get_delta_for_event(action)
-                interval = self.get_market_interval(prediction_moment, oracle_interval)
+                interval = self.calculate_interval(prediction_moment, oracle_interval)
                 raw_data = self.datasource.get_data(prediction_moment, interval)
 
                 if action == OracleAction.TRAIN:
@@ -50,9 +50,11 @@ class Controller(AbstractController):
         self.performance.create_oracle_report()
         self.print_run_summary()
 
-    def get_market_interval(self, moment, oracle_interval):
+    def calculate_interval(self, moment, oracle_interval):
         """
-        Given a moment and an interval from the oracle, it calculates a correct business day intervall
+        Given a moment and an interval in DAYS from the oracle,it calculates a real delta in order to get
+        a delta that gives you the valid number of timesteps in the data
+
         It always add 1 day more to the interval to prevent any missing data on the datasource.
         It's safe to give one day more.
 
@@ -62,7 +64,7 @@ class Controller(AbstractController):
         :return datetime.timedelta:
         """
 
-        schedule_start = moment - oracle_interval * 5
+        schedule_start = moment - timedelta(days=600)
         full_schedule = self.scheduler.calendar.schedule(schedule_start, moment)
         new_day = full_schedule.index[-oracle_interval.days]
 

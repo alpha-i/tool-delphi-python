@@ -130,7 +130,7 @@ class TestController(unittest.TestCase):
             oracle_interval = test['oracle_interval']
             expected_date = test['expected_date']
 
-            new_interval = controller.get_market_interval(moment, oracle_interval)
+            new_interval = controller.calculate_interval(moment, oracle_interval)
             new_date = moment - new_interval
             assert expected_date == new_date
 
