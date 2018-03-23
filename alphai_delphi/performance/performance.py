@@ -23,6 +23,7 @@ warnings.simplefilter(action='ignore', category=NaturalNameWarning)
 ORACLE_RESULTS_MEAN_VECTOR_TEMPLATE = '{}_oracle_results_mean_vector.hdf5'
 ORACLE_RESULTS_COVARIANCE_MATRIX_TEMPLATE = '{}_oracle_results_covariance_matrix.hdf5'
 ORACLE_RESULTS_ACTUALS_TEMPLATE = '{}_oracle_results_actuals.hdf5'
+ORACLE_RESULTS_FEATURES_SENSITIVITY_TEMPLATE = '{}_oracle_results_features_sensitivity.hdf5'
 
 METRIC_COLUMNS = ['returns_forecast_mean_vector', 'returns_forecast_covariance_matrix', 'initial_prices',
                   'final_prices', 'returns_actuals']
@@ -40,6 +41,9 @@ class OraclePerformance:
         self.output_covariance_matrix_filepath = \
             os.path.join(output_path, ORACLE_RESULTS_COVARIANCE_MATRIX_TEMPLATE.format(run_mode))
         self.output_actuals_filepath = os.path.join(output_path, ORACLE_RESULTS_ACTUALS_TEMPLATE.format(run_mode))
+        self.output_feature_sensitivity_filepath = os.path.join(
+            output_path, ORACLE_RESULTS_FEATURES_SENSITIVITY_TEMPLATE.format(run_mode)
+        )
 
     def add_prediction(self, target_dt, mean_vector, covariance_matrix):
         self.add_index_value(target_dt)
@@ -57,6 +61,12 @@ class OraclePerformance:
             initial_prices = self.metrics.loc[target_dt, 'initial_prices']
             self.metrics['final_prices'][target_dt] = final_prices
             self.metrics['returns_actuals'][target_dt] = self.calculate_log_returns(initial_prices, final_prices)
+
+    def add_features_sensitivity(self, target_dt, features_sensitivity):
+        self.add_index_value(target_dt)
+        if 'features_sensitivity' not in self.metrics.columns:
+            self.metrics['features_sensitivity'] = np.object
+        self.metrics['features_sensitivity'][target_dt] = pd.Series(features_sensitivity)
 
     def get_symbols(self, target_dt):
         """
@@ -102,6 +112,10 @@ class OraclePerformance:
                 self.output_covariance_matrix_filepath, target_dt_key)
             self.metrics.loc[target_dt, 'returns_actuals'].to_hdf(
                 self.output_actuals_filepath, target_dt_key)
+            if 'features_sensitivity' in self.metrics.columns:
+                self.metrics.loc[target_dt, 'features_sensitivity'].to_hdf(
+                    self.output_feature_sensitivity_filepath, target_dt_key
+                )
 
     def create_oracle_report(self):
         logger.info("Creating performance report...")
