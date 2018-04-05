@@ -41,20 +41,20 @@ class OraclePerformance:
 
     def add_prediction(self, target_dt, mean_vector, covariance_matrix):
         self.add_index_value(target_dt)
-        self.metrics['mean_vector'][target_dt] = mean_vector
-        self.metrics['covariance_matrix'][target_dt] = covariance_matrix
+        self.metrics[DefaultMetrics.mean_vector.value][target_dt] = mean_vector
+        self.metrics[DefaultMetrics.covariance_matrix.value][target_dt] = covariance_matrix
 
     def add_initial_values(self, target_dt, initial_values):
         self.add_index_value(target_dt)
-        self.metrics['initial_values'][target_dt] = initial_values
+        self.metrics[DefaultMetrics.initial_values.value][target_dt] = initial_values
 
     def add_final_values(self, target_dt, final_values):
         if target_dt not in self.metrics.index:
             logger.error("Error in getting equity symbols at {}: target_dt not in index".format(target_dt))
         else:
-            initial_values = self.metrics.loc[target_dt, 'initial_values']
-            self.metrics['final_values'][target_dt] = final_values
-            self.metrics['returns_actuals'][target_dt] = self.calculate_log_returns(initial_values, final_values)
+            initial_values = self.metrics.loc[target_dt, DefaultMetrics.initial_values.value]
+            self.metrics[DefaultMetrics.final_values.value][target_dt] = final_values
+            self.metrics[DefaultMetrics.returns_actuals.value][target_dt] = self.calculate_log_returns(initial_values, final_values)
 
     def add_features_sensitivity(self, target_dt, features_sensitivity):
         self.add_index_value(target_dt)
@@ -75,10 +75,10 @@ class OraclePerformance:
             logger.error("Error in getting equity symbols at {}: target_dt not in index".format(target_dt))
             return np.nan
         else:
-            if isinstance(self.metrics.loc[target_dt, 'initial_values'], pd.Series):
-                return np.array(self.metrics.loc[target_dt, 'initial_values'].index)
-            elif not isinstance(self.metrics.loc[target_dt, 'mean_vector'], pd.Series):
-                return np.array(self.metrics.loc[target_dt, 'mean_vector'].index)
+            if isinstance(self.metrics.loc[target_dt, DefaultMetrics.initial_values.value], pd.Series):
+                return np.array(self.metrics.loc[target_dt, DefaultMetrics.initial_values.value].index)
+            elif not isinstance(self.metrics.loc[target_dt, DefaultMetrics.mean_vector.value], pd.Series):
+                return np.array(self.metrics.loc[target_dt, DefaultMetrics.mean_vector.value].index)
             else:
                 logger.error("Error in getting equity symbols at {}: no symbols could be found".format(target_dt))
                 return np.nan
