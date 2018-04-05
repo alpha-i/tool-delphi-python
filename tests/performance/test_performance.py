@@ -1,6 +1,4 @@
 import os
-import shutil
-from tempfile import TemporaryDirectory
 from unittest import TestCase, mock
 
 import pandas as pd
@@ -9,17 +7,7 @@ from numpy.testing import assert_almost_equal
 
 from alphai_delphi.performance import DefaultMetrics, create_metric_filename
 from alphai_delphi.performance.performance import OraclePerformance, TIMESTAMP_FORMAT
-
-TMP_FOLDER = TemporaryDirectory().name
-
-
-def create_test_environment():
-    if not os.path.exists(TMP_FOLDER):
-        os.makedirs(TMP_FOLDER)
-
-
-def destroy_test_environment():
-    shutil.rmtree(TMP_FOLDER)
+from tests.performance import TMP_FOLDER, create_test_environment, destroy_test_environment
 
 
 class TestOraclePerformance(TestCase):

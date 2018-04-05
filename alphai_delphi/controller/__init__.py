@@ -153,8 +153,9 @@ class Controller(AbstractController):
         )
         self.performance.add_prediction(target_dt, prediction_result.mean_vector, prediction_result.covariance_matrix)
         self.performance.add_initial_values(target_dt, initial_values)
-        if hasattr(prediction_result, '_feature_sensitivity'):
-            self.performance.add_features_sensitivity(target_dt, prediction_result._feature_sensitivity)
+
+        for metric_name, value in prediction_result.custom_metrics.items():
+            self.performance.add_metric(metric_name, value, target_dt)
 
     def print_run_summary(self):
         logger.info("**************************")

@@ -13,7 +13,15 @@ class OracleAction(Enum):
     TRAIN = 1
 
 
-class PredictionResult:
+class AbstractPredictionResult(metaclass=ABCMeta):
+
+    @property
+    @abstractmethod
+    def custom_metrics(self):
+        raise NotImplementedError()
+
+
+class PredictionResult(AbstractPredictionResult):
     def __init__(self, mean_vector, covariance_matrix, prediction_timestamp, target_timestamp):
         """
         :param mean_vector: vector of predicted means
@@ -32,6 +40,10 @@ class PredictionResult:
 
     def __repr__(self):
         return "<Prediction result: {}>".format(self.__dict__)
+
+    @property
+    def custom_metrics(self):
+        return {}
 
 
 class AbstractOracle(metaclass=ABCMeta):
