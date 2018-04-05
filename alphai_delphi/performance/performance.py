@@ -20,14 +20,15 @@ TIMESTAMP_FORMAT = '%Y%m%d-%H%M%S'
 
 
 class OraclePerformance:
+
     def __init__(self, output_path, run_mode):
         self.run_mode = run_mode
         self.metrics = pd.DataFrame(columns=DefaultMetrics.get_metrics())
         self._output_path = output_path
         self._output_metrics = [
-                DefaultMetrics.mean_vector.value,
-                DefaultMetrics.covariance_matrix.value,
-                DefaultMetrics.returns_actuals.value
+            DefaultMetrics.mean_vector.value,
+            DefaultMetrics.covariance_matrix.value,
+            DefaultMetrics.returns_actuals.value
         ]
 
     def add_prediction(self, target_dt, mean_vector, covariance_matrix):
@@ -45,14 +46,25 @@ class OraclePerformance:
         else:
             initial_values = self.metrics.loc[target_dt, DefaultMetrics.initial_values.value]
             self.metrics[DefaultMetrics.final_values.value][target_dt] = final_values
-            self.metrics[DefaultMetrics.returns_actuals.value][target_dt] = self.calculate_log_returns(initial_values,
-                                                                                                       final_values)
+            returns_actuals = self.calculate_log_returns(initial_values, final_values)
+            self.metrics[DefaultMetrics.returns_actuals.value][target_dt] = returns_actuals
 
-    def add_features_sensitivity(self, target_dt, features_sensitivity):
+    def add_metric(self, metric_name, metric_value, target_dt):
+        """
+        Add custom metric to the performance
+
+        :param str metric_name:
+        :param metric_value:
+        :param datetime.datetime target_dt:
+
+        :return:
+        """
         self.add_index_value(target_dt)
-        if 'features_sensitivity' not in self.metrics.columns:
-            self.metrics['features_sensitivity'] = np.object
-        self.metrics['features_sensitivity'][target_dt] = pd.Series(features_sensitivity)
+        if metric_name not in self.metrics.columns:
+            self.metrics[metric_name] = np.object
+            self._output_metrics.append(metric_name)
+
+        self.metrics[metric_name][target_dt] = pd.Series(metric_value)
 
     def get_symbols(self, target_dt):
         """
@@ -94,12 +106,6 @@ class OraclePerformance:
 
             for metric in self._output_metrics:
                 self._save_metric_to_hdf(metric, target_dt)
-
-            if 'features_sensitivity' in self.metrics.columns:
-                target_dt_key = target_dt.strftime(format=TIMESTAMP_FORMAT)
-                self.metrics.loc[target_dt, 'features_sensitivity'].to_hdf(
-                    self.output_feature_sensitivity_filepath, target_dt_key
-                )
 
     def _save_metric_to_hdf(self, metric_name, target_datetime):
 
