@@ -6,13 +6,7 @@ import numpy as np
 import pandas as pd
 from tables import NaturalNameWarning
 
-from alphai_delphi.performance.oracle import (
-    create_oracle_performance_report,
-    create_oracle_data_report,
-    create_time_series_plot,
-    read_oracle_results_from_path,
-    read_oracle_symbol_weights_from_path
-)
+from alphai_delphi.performance.oracle  import OracleReportWriter
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -25,8 +19,8 @@ ORACLE_RESULTS_COVARIANCE_MATRIX_TEMPLATE = '{}_oracle_results_covariance_matrix
 ORACLE_RESULTS_ACTUALS_TEMPLATE = '{}_oracle_results_actuals.hdf5'
 ORACLE_RESULTS_FEATURES_SENSITIVITY_TEMPLATE = '{}_oracle_results_features_sensitivity.hdf5'
 
-METRIC_COLUMNS = ['returns_forecast_mean_vector', 'returns_forecast_covariance_matrix', 'initial_prices',
-                  'final_prices', 'returns_actuals']
+METRIC_COLUMNS = ['returns_forecast_mean_vector', 'returns_forecast_covariance_matrix', 'initial_values',
+                  'final_values', 'returns_actuals']
 
 TIMESTAMP_FORMAT = '%Y%m%d-%H%M%S'
 
@@ -50,17 +44,17 @@ class OraclePerformance:
         self.metrics['returns_forecast_mean_vector'][target_dt] = mean_vector
         self.metrics['returns_forecast_covariance_matrix'][target_dt] = covariance_matrix
 
-    def add_initial_prices(self, target_dt, initial_prices):
+    def add_initial_values(self, target_dt, initial_values):
         self.add_index_value(target_dt)
-        self.metrics['initial_prices'][target_dt] = initial_prices
+        self.metrics['initial_values'][target_dt] = initial_values
 
-    def add_final_values(self, target_dt, final_prices):
+    def add_final_values(self, target_dt, final_values):
         if target_dt not in self.metrics.index:
             logger.error("Error in getting equity symbols at {}: target_dt not in index".format(target_dt))
         else:
-            initial_prices = self.metrics.loc[target_dt, 'initial_prices']
-            self.metrics['final_prices'][target_dt] = final_prices
-            self.metrics['returns_actuals'][target_dt] = self.calculate_log_returns(initial_prices, final_prices)
+            initial_values = self.metrics.loc[target_dt, 'initial_values']
+            self.metrics['final_values'][target_dt] = final_values
+            self.metrics['returns_actuals'][target_dt] = self.calculate_log_returns(initial_values, final_values)
 
     def add_features_sensitivity(self, target_dt, features_sensitivity):
         self.add_index_value(target_dt)
@@ -81,8 +75,8 @@ class OraclePerformance:
             logger.error("Error in getting equity symbols at {}: target_dt not in index".format(target_dt))
             return np.nan
         else:
-            if isinstance(self.metrics.loc[target_dt, 'initial_prices'], pd.Series):
-                return np.array(self.metrics.loc[target_dt, 'initial_prices'].index)
+            if isinstance(self.metrics.loc[target_dt, 'initial_values'], pd.Series):
+                return np.array(self.metrics.loc[target_dt, 'initial_values'].index)
             elif not isinstance(self.metrics.loc[target_dt, 'returns_forecast_mean_vector'], pd.Series):
                 return np.array(self.metrics.loc[target_dt, 'returns_forecast_mean_vector'].index)
             else:
@@ -90,12 +84,12 @@ class OraclePerformance:
                 return np.nan
 
     @staticmethod
-    def calculate_log_returns(initial_prices, final_prices):
-        if set(initial_prices.index) != set(final_prices.index):
+    def calculate_log_returns(initial_values, final_values):
+        if set(initial_values.index) != set(final_values.index):
             logger.error("Can't calculate log returns: incompatibility between initial and final prices.")
             return np.nan
         else:
-            return np.log(final_prices / initial_prices)
+            return np.log(final_values / initial_values)
 
     def add_index_value(self, target_dt):
         if target_dt not in self.metrics.index:
@@ -118,15 +112,8 @@ class OraclePerformance:
                 )
 
     def create_oracle_report(self):
-        logger.info("Creating performance report...")
-        results_path = self._output_path
-        output_path = self._output_path
-        oracle_results = read_oracle_results_from_path(results_path, run_mode=self.run_mode)
-        oracle_symbol_weights = read_oracle_symbol_weights_from_path(results_path)
-        create_oracle_performance_report(oracle_results, output_path, oracle_symbol_weights)
-        create_oracle_data_report(oracle_results, output_path)
-        create_time_series_plot(oracle_results, output_path)
-        logger.info("Performance report finished.")
+        report = OracleReportWriter(self._output_path, self._output_path, self.run_mode)
+        report.write()
 
     def drop_dt(self, target_dt):
         if target_dt not in self.metrics.index:
