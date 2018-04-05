@@ -7,7 +7,7 @@ import pandas as pd
 from tables import NaturalNameWarning
 
 from alphai_delphi.performance import DefaultMetrics
-from alphai_delphi.performance.report  import OracleReportWriter
+from alphai_delphi.performance.report import OracleReportWriter
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -54,7 +54,8 @@ class OraclePerformance:
         else:
             initial_values = self.metrics.loc[target_dt, DefaultMetrics.initial_values.value]
             self.metrics[DefaultMetrics.final_values.value][target_dt] = final_values
-            self.metrics[DefaultMetrics.returns_actuals.value][target_dt] = self.calculate_log_returns(initial_values, final_values)
+            self.metrics[DefaultMetrics.returns_actuals.value][target_dt] = self.calculate_log_returns(initial_values,
+                                                                                                       final_values)
 
     def add_features_sensitivity(self, target_dt, features_sensitivity):
         self.add_index_value(target_dt)
