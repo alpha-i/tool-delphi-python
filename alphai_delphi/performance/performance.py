@@ -7,7 +7,7 @@ import pandas as pd
 from tables import NaturalNameWarning
 
 from alphai_delphi.performance import DefaultMetrics
-from alphai_delphi.performance.oracle  import OracleReportWriter
+from alphai_delphi.performance.report  import OracleReportWriter
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
