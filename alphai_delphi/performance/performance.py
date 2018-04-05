@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from tables import NaturalNameWarning
 
+from alphai_delphi.performance import DefaultMetrics
 from alphai_delphi.performance.oracle  import OracleReportWriter
 
 logger = logging.getLogger(__name__)
@@ -19,8 +20,7 @@ ORACLE_RESULTS_COVARIANCE_MATRIX_TEMPLATE = '{}_oracle_results_covariance_matrix
 ORACLE_RESULTS_ACTUALS_TEMPLATE = '{}_oracle_results_actuals.hdf5'
 ORACLE_RESULTS_FEATURES_SENSITIVITY_TEMPLATE = '{}_oracle_results_features_sensitivity.hdf5'
 
-METRIC_COLUMNS = ['returns_forecast_mean_vector', 'returns_forecast_covariance_matrix', 'initial_values',
-                  'final_values', 'returns_actuals']
+ORACLE_RESULT_METRICS_TEMPLATE = '{}_oracle_results_{}.hdf5'
 
 TIMESTAMP_FORMAT = '%Y%m%d-%H%M%S'
 
@@ -28,7 +28,7 @@ TIMESTAMP_FORMAT = '%Y%m%d-%H%M%S'
 class OraclePerformance:
     def __init__(self, output_path, run_mode):
         self.run_mode = run_mode
-        self.metrics = pd.DataFrame(columns=METRIC_COLUMNS)
+        self.metrics = pd.DataFrame(columns=DefaultMetrics.get_metrics())
         self._output_path = output_path
         self.output_mean_vector_filepath = \
             os.path.join(output_path, ORACLE_RESULTS_MEAN_VECTOR_TEMPLATE.format(run_mode))
@@ -41,8 +41,8 @@ class OraclePerformance:
 
     def add_prediction(self, target_dt, mean_vector, covariance_matrix):
         self.add_index_value(target_dt)
-        self.metrics['returns_forecast_mean_vector'][target_dt] = mean_vector
-        self.metrics['returns_forecast_covariance_matrix'][target_dt] = covariance_matrix
+        self.metrics['mean_vector'][target_dt] = mean_vector
+        self.metrics['covariance_matrix'][target_dt] = covariance_matrix
 
     def add_initial_values(self, target_dt, initial_values):
         self.add_index_value(target_dt)
@@ -77,8 +77,8 @@ class OraclePerformance:
         else:
             if isinstance(self.metrics.loc[target_dt, 'initial_values'], pd.Series):
                 return np.array(self.metrics.loc[target_dt, 'initial_values'].index)
-            elif not isinstance(self.metrics.loc[target_dt, 'returns_forecast_mean_vector'], pd.Series):
-                return np.array(self.metrics.loc[target_dt, 'returns_forecast_mean_vector'].index)
+            elif not isinstance(self.metrics.loc[target_dt, 'mean_vector'], pd.Series):
+                return np.array(self.metrics.loc[target_dt, 'mean_vector'].index)
             else:
                 logger.error("Error in getting equity symbols at {}: no symbols could be found".format(target_dt))
                 return np.nan
@@ -100,11 +100,11 @@ class OraclePerformance:
             logger.error("Failed to save to hdf5 at {}: target_dt not in index or nan was found".format(target_dt))
         else:
             target_dt_key = target_dt.strftime(format=TIMESTAMP_FORMAT)
-            self.metrics.loc[target_dt, 'returns_forecast_mean_vector'].to_hdf(
+            self.metrics.loc[target_dt, DefaultMetrics.mean_vector.value].to_hdf(
                 self.output_mean_vector_filepath, target_dt_key)
-            self.metrics.loc[target_dt, 'returns_forecast_covariance_matrix'].to_hdf(
+            self.metrics.loc[target_dt, DefaultMetrics.covariance_matrix.value].to_hdf(
                 self.output_covariance_matrix_filepath, target_dt_key)
-            self.metrics.loc[target_dt, 'returns_actuals'].to_hdf(
+            self.metrics.loc[target_dt, DefaultMetrics.returns_actuals.value].to_hdf(
                 self.output_actuals_filepath, target_dt_key)
             if 'features_sensitivity' in self.metrics.columns:
                 self.metrics.loc[target_dt, 'features_sensitivity'].to_hdf(

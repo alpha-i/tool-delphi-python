@@ -3,6 +3,8 @@ import os
 
 import matplotlib
 
+from alphai_delphi.performance import DefaultMetrics
+
 matplotlib.use('Agg')
 
 import numpy as np
@@ -40,14 +42,18 @@ FINANCIAL_POSITIONS_ENDSWITH_TEMPLATE = 'financial_positions.csv'
 FINANCIAL_TRANSACTIONS_ENDSWITH_TEMPLATE = 'financial_transactions.csv'
 FINANCIAL_BENCHMARK_ENDSWITH_TEMPLATE = 'benchmark.csv'
 BENCHMARK_NAME = 'SPY'
-ORACLE_METRIC_COLUMNS = ['returns_forecast_mean_vector', 'returns_forecast_covariance_matrix', 'returns_actuals']
+ORACLE_METRIC_COLUMNS = [
+                DefaultMetrics.mean_vector.value,
+                DefaultMetrics.covariance_matrix.value,
+                DefaultMetrics.returns_actuals.value
+                ]
 
 
 def _create_oracle_performance_report(oracle_results, output_path, oracle_symbol_weights=None):
     """
     Calculate oracle performance metrics and save the table to csv
     :param oracle_results: Dataframe indexed by datetime with three columns
-    ['returns_actuals', 'returns_forecast_covariance_matrix', 'returns_forecast_mean_vector']
+    ['returns_actuals', 'covariance_matrix', 'mean_vector']
     :param output_path: path where to save the output
     :param oracle_symbol_weights:
     :return: Nothing
@@ -91,11 +97,11 @@ def _create_oracle_performance_report(oracle_results, output_path, oracle_symbol
         inv_covariance_matrices = []
         for i in range(n_samples):
             date = oracle_results.index[i]
-            forecast = oracle_results.returns_forecast_mean_vector[date].values
+            forecast = oracle_results.mean_vector[date].values
             n_predictions = len(forecast)
             diag_matrix = np.eye(n_predictions)
             inv_covariance_matrices.append(diag_matrix)
-            oracle_results.returns_forecast_covariance_matrix[date] = diag_matrix
+            oracle_results.covariance_matrix[date] = diag_matrix
 
     logger.info("Evaluating likelihoods")
     for i in range(n_samples):
@@ -103,7 +109,7 @@ def _create_oracle_performance_report(oracle_results, output_path, oracle_symbol
         date = pd.datetime.strptime(date_str, '%Y%m%d-%H%M%S').date()
 
         pd_truth = oracle_results.returns_actuals[date_str]
-        pd_forecast = oracle_results.returns_forecast_mean_vector[date_str]
+        pd_forecast = oracle_results.mean_vector[date_str]
 
         true_cols = list(pd_truth.index.values)
         forecast_cols = list(pd_forecast.index.values)
@@ -119,7 +125,7 @@ def _create_oracle_performance_report(oracle_results, output_path, oracle_symbol
             weights = _extract_weight_array(predicted_symbols, oracle_symbol_weights)
         weighted_corr_coeff.loc[date] = _calculate_weighted_correlation_coefficient(truth, forecast, weights)
 
-        covariance = oracle_results.returns_forecast_covariance_matrix[date_str]
+        covariance = oracle_results.covariance_matrix[date_str]
         covariance = np.asarray(covariance)
         optimal_covariance = cov_factor * covariance
 
@@ -197,7 +203,7 @@ def _create_oracle_performance_report(oracle_results, output_path, oracle_symbol
     total_market_return = np.exp(np.nansum(frac_change_market))
 
     oracle_performance_table["rms"] = np.nanstd(np.concatenate(oracle_results.returns_actuals, axis=0) -
-                                                np.concatenate(oracle_results.returns_forecast_mean_vector, axis=0))
+                                                np.concatenate(oracle_results.mean_vector, axis=0))
 
     oracle_performance_table["min_rms"] = np.nanstd(np.concatenate(oracle_results.returns_actuals, axis=0))
 
@@ -298,7 +304,7 @@ def _oracle_covariance_optimisation(cov_factor, oracle_results, inv_covariance_m
     for i in range(n_samples):
         date = oracle_results.index[i]
         truth = oracle_results.returns_actuals[date]
-        forecast = oracle_results.returns_forecast_mean_vector[date]
+        forecast = oracle_results.mean_vector[date]
         inv_covariance = inv_covariance_matrices[i]
         sample_cost = _neg_log_likelihood(cov_factor, truth, forecast, inv_covariance)
 
@@ -330,7 +336,7 @@ def _create_oracle_data_report(oracle_results, output_path):
     """
     Calculate histogram of truth and forecast and save the table to csv
     :param oracle_results: Dataframe indexed by datetime with three columns
-    ['returns_actuals', 'returns_forecast_covariance_matrix', 'returns_forecast_mean_vector']
+    ['returns_actuals', 'covariance_matrix', 'mean_vector']
     :param output_path: path where to save the output
     :return: Nope
     """
@@ -358,7 +364,7 @@ def _create_oracle_data_report(oracle_results, output_path):
     for i in range(n_samples):
         date = oracle_results.index[i]
         truth = oracle_results.returns_actuals[date].dropna()
-        forecast = oracle_results.returns_forecast_mean_vector[date].dropna()
+        forecast = oracle_results.mean_vector[date].dropna()
 
         if i == 0:
             true_hist = np.histogram(truth, bins=bin_edges)[0]
@@ -375,7 +381,7 @@ def _create_oracle_data_report(oracle_results, output_path):
         infs_in_forecast += np.sum(np.isinf(forecast))
 
         nans_in_truth += oracle_results.returns_actuals[date].isnull().sum()
-        nans_in_forecast += oracle_results.returns_forecast_mean_vector[date].isnull().sum()
+        nans_in_forecast += oracle_results.mean_vector[date].isnull().sum()
 
         sample_max_forecast = np.max(np.abs(forecast))
         max_forecast = np.maximum(sample_max_forecast, max_forecast)
@@ -444,7 +450,7 @@ def _compute_covariance_inverses(oracle_results):
 
     for i in range(n_samples):
         date = oracle_results.index[i]
-        covariance = oracle_results.returns_forecast_covariance_matrix[date]
+        covariance = oracle_results.covariance_matrix[date]
         covariance = _prepare_covariance_for_inversion(covariance)
 
         inv_covariance_matrices.append(np.linalg.inv(covariance))
@@ -487,7 +493,7 @@ def _get_all_symbols(oracle_results):
     """
     get all unique tick symbols and return as a set
     :param oracle_results: Dataframe indexed by datetime with three columns
-    ['returns_actuals', 'returns_forecast_covariance_matrix', 'returns_forecast_mean_vector']
+    ['returns_actuals', 'covariance_matrix', 'mean_vector']
     :return: returns a set of all unique symbols
     """
     symbols = []
@@ -500,7 +506,7 @@ def _make_df_dict(oracle_results):
     """
     returns a dict where key value pairs are the tick-symbols and dataframe
     :param oracle_results: Dataframe indexed by datetime with three columns
-    ['returns_actuals', 'returns_forecast_covariance_matrix', 'returns_forecast_mean_vector']
+    ['returns_actuals', 'covariance_matrix', 'mean_vector']
     :return: returns a dict where key value pairs are the tick-symbols and dataframe
     """
     symbols = _get_all_symbols(oracle_results)
@@ -520,8 +526,8 @@ def _make_df_dict(oracle_results):
 
                 time_stamps.append(oracle_results['returns_actuals'].index[i])
                 returns_actual.append(oracle_results['returns_actuals'][i][symbol])
-                returns_forecast_mean.append(oracle_results['returns_forecast_mean_vector'][i][symbol])
-                covariance_matrix = oracle_results['returns_forecast_covariance_matrix'][i]
+                returns_forecast_mean.append(oracle_results['mean_vector'][i][symbol])
+                covariance_matrix = oracle_results['covariance_matrix'][i]
                 if isinstance(covariance_matrix, (np.ndarray, np.generic)):
                     variance = 1.0
                 else:
@@ -542,7 +548,7 @@ def _create_time_series_plot(oracle_results, output_path):
     """
     make a time-series plot of the target + prediction with errors
     :param oracle_results: Dataframe indexed by datetime with three columns
-    ['returns_actuals', 'returns_forecast_covariance_matrix', 'returns_forecast_mean_vector']
+    ['returns_actuals', 'covariance_matrix', 'mean_vector']
     :param output_path: path where to save the output
     :return:
     """
@@ -719,13 +725,13 @@ def _read_oracle_results_from_path(results_path, run_mode=None):
     oracle_results_actuals_filepath = _get_results_file(results_path, ORACLE_ACTUALS_ENDSWITH_TEMPLATE,
                                                         starts_with=run_mode)
 
-    oracle_results = read_oracle_results_files(oracle_results_mean_vector_filepath,
-                                               oracle_results_covariance_matrix_filepath,
-                                               oracle_results_actuals_filepath)
+    oracle_results = _read_oracle_results_files(oracle_results_mean_vector_filepath,
+                                                oracle_results_covariance_matrix_filepath,
+                                                oracle_results_actuals_filepath)
     return oracle_results
 
 
-def read_oracle_results_files(mean_vector_file, covariance_matrix_file, actuals_file):
+def _read_oracle_results_files(mean_vector_file, covariance_matrix_file, actuals_file):
     store_mean_vector = pd.HDFStore(mean_vector_file)
     store_covariance_matrix = pd.HDFStore(covariance_matrix_file)
     store_actuals = pd.HDFStore(actuals_file)
@@ -784,9 +790,9 @@ def _check_validity_of_covariances(oracle_results):
     n_samples = len(oracle_results)
     for i in range(n_samples):
         date = oracle_results.index[i]
-        covariance = oracle_results.returns_forecast_covariance_matrix[date]
+        covariance = oracle_results.covariance_matrix[date]
 
-        forecast = oracle_results.returns_forecast_mean_vector[date].dropna().values
+        forecast = oracle_results.mean_vector[date].dropna().values
 
         n_predict = len(forecast)
         cov_size = covariance.shape
