@@ -7,9 +7,8 @@ import pandas as pd
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from alphai_delphi.performance import DefaultMetrics
-from alphai_delphi.performance.performance import OraclePerformance, ORACLE_RESULTS_MEAN_VECTOR_TEMPLATE, \
-    ORACLE_RESULTS_COVARIANCE_MATRIX_TEMPLATE, ORACLE_RESULTS_ACTUALS_TEMPLATE, TIMESTAMP_FORMAT
+from alphai_delphi.performance import DefaultMetrics, create_metric_filename
+from alphai_delphi.performance.performance import OraclePerformance, TIMESTAMP_FORMAT
 
 TMP_FOLDER = TemporaryDirectory().name
 
@@ -118,11 +117,12 @@ class TestOraclePerformance(TestCase):
         self.oracle_perf.add_final_values(second_target_dt, self.sample_final_values)
         self.oracle_perf.save_to_hdf5(second_target_dt)
 
-        results_mean_vector_filepath = \
-            os.path.join(self.output_path, ORACLE_RESULTS_MEAN_VECTOR_TEMPLATE.format(self.run_mode))
-        results_covariance_matrix_filepath = \
-            os.path.join(self.output_path, ORACLE_RESULTS_COVARIANCE_MATRIX_TEMPLATE.format(self.run_mode))
-        results_actuals_filepath = os.path.join(self.output_path, ORACLE_RESULTS_ACTUALS_TEMPLATE.format(self.run_mode))
+        results_mean_vector_filepath = os.path.join(
+            self.output_path, create_metric_filename(DefaultMetrics.mean_vector.value, self.run_mode))
+        results_covariance_matrix_filepath = os.path.join(
+            self.output_path, create_metric_filename(DefaultMetrics.covariance_matrix.value, self.run_mode))
+        results_actuals_filepath = os.path.join(
+            self.output_path, create_metric_filename(DefaultMetrics.returns_actuals.value, self.run_mode))
 
         assert os.path.isfile(results_mean_vector_filepath)
         assert os.path.isfile(results_covariance_matrix_filepath)

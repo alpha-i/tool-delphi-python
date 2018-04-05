@@ -35,13 +35,16 @@ N_ROLLING_WINDOW = 20
 
 ORACLE_MEAN_VECTOR_ENDSWITH_TEMPLATE = 'oracle_results_mean_vector.hdf5'
 ORACLE_COVARIANCE_MATRIX_ENDSWITH_TEMPLATE = 'oracle_results_covariance_matrix.hdf5'
-ORACLE_ACTUALS_ENDSWITH_TEMPLATE = 'oracle_results_actuals.hdf5'
+ORACLE_ACTUALS_ENDSWITH_TEMPLATE = 'oracle_results_returns_actuals.hdf5'
+
+
 ORACLE_SYMBOL_WEIGHTS_ENDSWITH_TEMPLATE = 'oracle_symbol_weights.csv'
 FINANCIAL_RETURNS_ENDSWITH_TEMPLATE = 'financial_returns.csv'
 FINANCIAL_POSITIONS_ENDSWITH_TEMPLATE = 'financial_positions.csv'
 FINANCIAL_TRANSACTIONS_ENDSWITH_TEMPLATE = 'financial_transactions.csv'
 FINANCIAL_BENCHMARK_ENDSWITH_TEMPLATE = 'benchmark.csv'
 BENCHMARK_NAME = 'SPY'
+
 ORACLE_METRIC_COLUMNS = [
                 DefaultMetrics.mean_vector.value,
                 DefaultMetrics.covariance_matrix.value,

@@ -6,21 +6,15 @@ import numpy as np
 import pandas as pd
 from tables import NaturalNameWarning
 
-from alphai_delphi.performance import DefaultMetrics
+from alphai_delphi.performance import DefaultMetrics, create_metric_filename
 from alphai_delphi.performance.report import OracleReportWriter
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
+
 # We want to hide the number of NaturalNameWarning warnings when we format the column names
 # according to the `TIMESTAMP_FORMAT`.
 warnings.simplefilter(action='ignore', category=NaturalNameWarning)
-
-ORACLE_RESULTS_MEAN_VECTOR_TEMPLATE = '{}_oracle_results_mean_vector.hdf5'
-ORACLE_RESULTS_COVARIANCE_MATRIX_TEMPLATE = '{}_oracle_results_covariance_matrix.hdf5'
-ORACLE_RESULTS_ACTUALS_TEMPLATE = '{}_oracle_results_actuals.hdf5'
-ORACLE_RESULTS_FEATURES_SENSITIVITY_TEMPLATE = '{}_oracle_results_features_sensitivity.hdf5'
-
-ORACLE_RESULT_METRICS_TEMPLATE = '{}_oracle_results_{}.hdf5'
 
 TIMESTAMP_FORMAT = '%Y%m%d-%H%M%S'
 
@@ -30,14 +24,11 @@ class OraclePerformance:
         self.run_mode = run_mode
         self.metrics = pd.DataFrame(columns=DefaultMetrics.get_metrics())
         self._output_path = output_path
-        self.output_mean_vector_filepath = \
-            os.path.join(output_path, ORACLE_RESULTS_MEAN_VECTOR_TEMPLATE.format(run_mode))
-        self.output_covariance_matrix_filepath = \
-            os.path.join(output_path, ORACLE_RESULTS_COVARIANCE_MATRIX_TEMPLATE.format(run_mode))
-        self.output_actuals_filepath = os.path.join(output_path, ORACLE_RESULTS_ACTUALS_TEMPLATE.format(run_mode))
-        self.output_feature_sensitivity_filepath = os.path.join(
-            output_path, ORACLE_RESULTS_FEATURES_SENSITIVITY_TEMPLATE.format(run_mode)
-        )
+        self._output_metrics = [
+                DefaultMetrics.mean_vector.value,
+                DefaultMetrics.covariance_matrix.value,
+                DefaultMetrics.returns_actuals.value
+        ]
 
     def add_prediction(self, target_dt, mean_vector, covariance_matrix):
         self.add_index_value(target_dt)
@@ -68,7 +59,7 @@ class OraclePerformance:
         Generalised form of get_equity_symbols
 
         :param target_dt: The datetime to get symbols at
-        :type target_dt: datetime.datetime
+        :type target_dt: datetime.datetimeq
         :return: an np.Array of symbols
         :rtype np.array
         """
@@ -100,17 +91,21 @@ class OraclePerformance:
         if target_dt not in self.metrics.index or np.any(self.metrics.loc[target_dt, :].isnull()):
             logger.error("Failed to save to hdf5 at {}: target_dt not in index or nan was found".format(target_dt))
         else:
-            target_dt_key = target_dt.strftime(format=TIMESTAMP_FORMAT)
-            self.metrics.loc[target_dt, DefaultMetrics.mean_vector.value].to_hdf(
-                self.output_mean_vector_filepath, target_dt_key)
-            self.metrics.loc[target_dt, DefaultMetrics.covariance_matrix.value].to_hdf(
-                self.output_covariance_matrix_filepath, target_dt_key)
-            self.metrics.loc[target_dt, DefaultMetrics.returns_actuals.value].to_hdf(
-                self.output_actuals_filepath, target_dt_key)
+
+            for metric in self._output_metrics:
+                self._save_metric_to_hdf(metric, target_dt)
+
             if 'features_sensitivity' in self.metrics.columns:
+                target_dt_key = target_dt.strftime(format=TIMESTAMP_FORMAT)
                 self.metrics.loc[target_dt, 'features_sensitivity'].to_hdf(
                     self.output_feature_sensitivity_filepath, target_dt_key
                 )
+
+    def _save_metric_to_hdf(self, metric_name, target_datetime):
+
+        target_dt_key = target_datetime.strftime(format=TIMESTAMP_FORMAT)
+        path = os.path.join(self._output_path, create_metric_filename(metric_name, self.run_mode))
+        self.metrics.loc[target_datetime, metric_name].to_hdf(path, target_dt_key)
 
     def create_oracle_report(self):
         report = OracleReportWriter(self._output_path, self._output_path, self.run_mode)
