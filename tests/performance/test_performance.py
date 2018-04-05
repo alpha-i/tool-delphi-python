@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 from numpy.testing import assert_almost_equal
 
+from alphai_delphi.performance import DefaultMetrics
 from alphai_delphi.performance.performance import OraclePerformance, ORACLE_RESULTS_MEAN_VECTOR_TEMPLATE, \
     ORACLE_RESULTS_COVARIANCE_MATRIX_TEMPLATE, ORACLE_RESULTS_ACTUALS_TEMPLATE, TIMESTAMP_FORMAT
 
@@ -32,11 +33,11 @@ class TestOraclePerformance(TestCase):
         self.sample_covariance_matrix_forecast = pd.DataFrame(np.identity(self.n_symbols),
                                                               index=self.sample_symbols, columns=self.sample_symbols)
         self.sample_mean_vector_forecast = pd.Series(np.zeros(self.n_symbols), index=self.sample_symbols)
-        self.sample_initial_prices = pd.Series(np.ones(self.n_symbols), index=self.sample_symbols)
+        self.sample_initial_values = pd.Series(np.ones(self.n_symbols), index=self.sample_symbols)
         self.sample_log_return = 0.1
         self.sample_log_returns = pd.Series(self.sample_log_return * np.ones(self.n_symbols),
                                             index=self.sample_symbols)
-        self.sample_final_prices = pd.Series(np.exp(self.sample_log_return) * np.ones(self.n_symbols),
+        self.sample_final_values = pd.Series(np.exp(self.sample_log_return) * np.ones(self.n_symbols),
                                              index=self.sample_symbols)
         self.run_mode = 'backtest'
 
@@ -54,40 +55,41 @@ class TestOraclePerformance(TestCase):
         assert self.sample_target_dt in self.oracle_perf
         self.assertEqual(self.oracle_perf.metrics.index[0], self.sample_target_dt)
         assert self.sample_mean_vector_forecast.equals(
-            self.oracle_perf.metrics.loc[self.sample_target_dt, 'returns_forecast_mean_vector'])
+            self.oracle_perf.metrics.loc[self.sample_target_dt, DefaultMetrics.mean_vector.value])
         assert self.sample_covariance_matrix_forecast.equals(
-            self.oracle_perf.metrics.loc[self.sample_target_dt, 'returns_forecast_covariance_matrix'])
+            self.oracle_perf.metrics.loc[self.sample_target_dt, DefaultMetrics.covariance_matrix.value])
 
-    def test_add_initial_prices(self):
-        self.oracle_perf.add_initial_prices(self.sample_target_dt, self.sample_initial_prices)
+    def test_add_initial_values(self):
+        self.oracle_perf.add_initial_values(self.sample_target_dt, self.sample_initial_values)
 
         self.assertEqual(len(self.oracle_perf), 1)
         assert self.sample_target_dt in self.oracle_perf
         self.assertEqual(self.oracle_perf.metrics.index[0], self.sample_target_dt)
-        assert self.sample_initial_prices.equals(
-            self.oracle_perf.metrics.loc[self.sample_target_dt, 'initial_prices'])
+        assert self.sample_initial_values.equals(
+            self.oracle_perf.metrics.loc[self.sample_target_dt, 'initial_values'])
 
     @mock.patch('alphai_delphi.performance.performance.logger')
-    def test_add_final_prices(self, mock_logging):
-        self.oracle_perf.add_final_values(self.sample_target_dt, self.sample_final_prices)
+    def test_add_final_values(self, mock_logging):
+        self.oracle_perf.add_final_values(self.sample_target_dt, self.sample_final_values)
         assert mock_logging.error.called
 
-        self.oracle_perf.add_initial_prices(self.sample_target_dt, self.sample_initial_prices)
-        self.oracle_perf.add_final_values(self.sample_target_dt, self.sample_final_prices)
+        self.oracle_perf.add_initial_values(self.sample_target_dt, self.sample_initial_values)
+        self.oracle_perf.add_final_values(self.sample_target_dt, self.sample_final_values)
         self.assertEqual(len(self.oracle_perf), 1)
         assert self.sample_target_dt in self.oracle_perf
         self.assertEqual(self.oracle_perf.metrics.index[0], self.sample_target_dt)
-        assert self.sample_final_prices.equals(
-            self.oracle_perf.metrics.loc[self.sample_target_dt, 'final_prices'])
+        assert self.sample_final_values.equals(
+            self.oracle_perf.metrics.loc[self.sample_target_dt, DefaultMetrics.final_values.value])
         assert_almost_equal(self.sample_log_returns.values,
-                            self.oracle_perf.metrics.loc[self.sample_target_dt, 'returns_actuals'].values)
+                            self.oracle_perf.metrics.loc[
+                                self.sample_target_dt, DefaultMetrics.returns_actuals.value].values)
 
     @mock.patch('alphai_delphi.performance.performance.logger')
     def test_get_equity_symbols(self, mock_logging):
         self.oracle_perf.get_symbols(self.sample_target_dt)
         assert mock_logging.error.called
 
-        self.oracle_perf.add_initial_prices(self.sample_target_dt, self.sample_initial_prices)
+        self.oracle_perf.add_initial_values(self.sample_target_dt, self.sample_initial_values)
         symbols = self.oracle_perf.get_symbols(self.sample_target_dt)
         assert set(symbols) == set(self.sample_symbols)
 
@@ -101,19 +103,19 @@ class TestOraclePerformance(TestCase):
         assert self.sample_target_dt in self.oracle_perf
 
     def test_save_to_hdf5(self):
-        self.oracle_perf.add_initial_prices(self.sample_target_dt, self.sample_initial_prices)
+        self.oracle_perf.add_initial_values(self.sample_target_dt, self.sample_initial_values)
         self.oracle_perf.add_prediction(self.sample_target_dt,
                                         self.sample_mean_vector_forecast,
                                         self.sample_covariance_matrix_forecast)
-        self.oracle_perf.add_final_values(self.sample_target_dt, self.sample_final_prices)
+        self.oracle_perf.add_final_values(self.sample_target_dt, self.sample_final_values)
         self.oracle_perf.save_to_hdf5(self.sample_target_dt)
 
         second_target_dt = pd.Timestamp("2017-05-30 18:44:00", tz='UTC')
-        self.oracle_perf.add_initial_prices(second_target_dt, self.sample_initial_prices)
+        self.oracle_perf.add_initial_values(second_target_dt, self.sample_initial_values)
         self.oracle_perf.add_prediction(second_target_dt,
                                         self.sample_mean_vector_forecast,
                                         self.sample_covariance_matrix_forecast)
-        self.oracle_perf.add_final_values(second_target_dt, self.sample_final_prices)
+        self.oracle_perf.add_final_values(second_target_dt, self.sample_final_values)
         self.oracle_perf.save_to_hdf5(second_target_dt)
 
         results_mean_vector_filepath = \
@@ -136,18 +138,18 @@ class TestOraclePerformance(TestCase):
             read_covariance_matrix = store_covariance_matrix.get(target_dt_key)
             read_actuals = store_actuals.get(target_dt_key)
 
-            assert read_mean_vector.equals(self.oracle_perf.metrics.loc[target_dt, 'returns_forecast_mean_vector'])
+            assert read_mean_vector.equals(self.oracle_perf.metrics.loc[target_dt, DefaultMetrics.mean_vector.value])
             assert read_covariance_matrix.equals(self.oracle_perf.metrics.
-                                                 loc[target_dt, 'returns_forecast_covariance_matrix'])
-            assert read_actuals.equals(self.oracle_perf.metrics.loc[target_dt, 'returns_actuals'])
+                                                 loc[target_dt, DefaultMetrics.covariance_matrix.value])
+            assert read_actuals.equals(self.oracle_perf.metrics.loc[target_dt, DefaultMetrics.returns_actuals.value])
 
     @mock.patch('alphai_delphi.performance.performance.logger')
     def test_drop_dt(self, mock_logging):
-        self.oracle_perf.add_initial_prices(self.sample_target_dt, self.sample_initial_prices)
+        self.oracle_perf.add_initial_values(self.sample_target_dt, self.sample_initial_values)
         self.oracle_perf.add_prediction(self.sample_target_dt,
                                         self.sample_mean_vector_forecast,
                                         self.sample_covariance_matrix_forecast)
-        self.oracle_perf.add_final_values(self.sample_target_dt, self.sample_final_prices)
+        self.oracle_perf.add_final_values(self.sample_target_dt, self.sample_final_values)
         assert self.sample_target_dt in self.oracle_perf
 
         self.oracle_perf.drop_dt(self.sample_target_dt)

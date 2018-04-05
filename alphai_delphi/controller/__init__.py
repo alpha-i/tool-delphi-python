@@ -152,7 +152,7 @@ class Controller(AbstractController):
             current_datetime
         )
         self.performance.add_prediction(target_dt, prediction_result.mean_vector, prediction_result.covariance_matrix)
-        self.performance.add_initial_prices(target_dt, initial_values)
+        self.performance.add_initial_values(target_dt, initial_values)
         if hasattr(prediction_result, '_feature_sensitivity'):
             self.performance.add_features_sensitivity(target_dt, prediction_result._feature_sensitivity)
 
