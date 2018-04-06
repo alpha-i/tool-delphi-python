@@ -1,5 +1,11 @@
 from enum import Enum
 
+ORACLE_RESULT_METRICS_TEMPLATE = '{}_oracle_results_{}.hdf5'
+
+
+def create_metric_filename(metric, prefix):
+    return ORACLE_RESULT_METRICS_TEMPLATE.format(prefix, metric)
+
 
 class DefaultMetrics(Enum):
 
@@ -12,3 +18,6 @@ class DefaultMetrics(Enum):
     @staticmethod
     def get_metrics():
         return [member.value for member in list(DefaultMetrics.__members__.values())]
+
+
+

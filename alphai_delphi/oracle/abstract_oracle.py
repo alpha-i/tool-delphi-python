@@ -13,7 +13,15 @@ class OracleAction(Enum):
     TRAIN = 1
 
 
-class PredictionResult:
+class AbstractPredictionResult(metaclass=ABCMeta):
+
+    @property
+    @abstractmethod
+    def custom_metrics(self):
+        raise NotImplementedError()
+
+
+class PredictionResult(AbstractPredictionResult):
     def __init__(self, mean_vector, covariance_matrix, prediction_timestamp, target_timestamp):
         """
         :param mean_vector: vector of predicted means
@@ -32,6 +40,10 @@ class PredictionResult:
 
     def __repr__(self):
         return "<Prediction result: {}>".format(self.__dict__)
+
+    @property
+    def custom_metrics(self):
+        return {}
 
 
 class AbstractOracle(metaclass=ABCMeta):
@@ -112,7 +124,7 @@ class AbstractOracle(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def predict(self, data, current_timestamp, target_timestamp):
+    def predict(self, data, current_timestamp, *args, **kwargs):
         """
         Main method that gives us a prediction after the training phase is done
 
@@ -120,9 +132,7 @@ class AbstractOracle(metaclass=ABCMeta):
         :type data: dict
         :param current_timestamp: The timestamp of the time when the prediction is executed
         :type current_timestamp: datetime.datetime
-        :param target_timestamp: The timestamp of the point in time we are predicting
-        :type target_timestamp: datetime.datetime
-        :return: Mean vector or covariance matrix together with the timestamp of the prediction
+        :return: Object containing prediction values together with the timestamp of the prediction
         :rtype: PredictionResult
         """
         raise NotImplementedError

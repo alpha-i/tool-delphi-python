@@ -178,7 +178,8 @@ class TestController(unittest.TestCase):
                                                    oracle_config, scheduling_config)
         controller.run()
 
-        assert len(controller.prediction_results) == 14  # as the valid market days in the prediction range
+        # constant oracle doesn't have calendar so it predicts every day
+        assert len(controller.prediction_results) == 22
 
         # Check if output files have been written
         assert len(
