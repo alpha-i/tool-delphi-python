@@ -1,5 +1,5 @@
 import os
-import pytest
+import unittest
 
 import pandas as pd
 import numpy as np
@@ -10,51 +10,55 @@ from alphai_delphi.performance.report import OracleReportWriter
 from tests.performance import create_test_environment, destroy_test_environment, TMP_FOLDER
 
 
-def test_report_writer():
+class TestReportWriter(unittest.TestCase):
 
-    create_test_environment()
+    def setUp(self):
+        create_test_environment()
 
-    output_path = TMP_FOLDER
-    run_mode = 'backtest'
+    def tearDown(self):
+        destroy_test_environment()
 
-    performances = OraclePerformance(output_path, run_mode)
+    def test_report_writer(self):
 
-    sample_target_dt = pd.Timestamp("2017-05-30 15:44:00", tz='UTC')
+        output_path = TMP_FOLDER
+        run_mode = 'backtest'
 
-    sample_symbols = ['AAPL', 'MSFT']
-    n_symbols = len(sample_symbols)
+        performances = OraclePerformance(output_path, run_mode)
 
-    initial_values = pd.Series(np.array([1, 2]), index=sample_symbols)
-    performances.add_initial_values(sample_target_dt, initial_values)
+        sample_target_dt = pd.Timestamp("2017-05-30 15:44:00", tz='UTC')
 
-    final_values = pd.Series(np.array([3, 4]), index=sample_symbols)
-    performances.add_final_values(sample_target_dt, final_values)
+        sample_symbols = ['AAPL', 'MSFT']
+        n_symbols = len(sample_symbols)
 
-    mean_vector = pd.Series(np.array([1, 2]), index=sample_symbols)
-    covariance_matrix = pd.DataFrame(np.identity(n_symbols), index=sample_symbols, columns=sample_symbols)
-    performances.add_prediction(sample_target_dt, mean_vector, covariance_matrix)
+        initial_values = pd.Series(np.array([1, 2]), index=sample_symbols)
+        performances.add_initial_values(sample_target_dt, initial_values)
 
-    performances.save_to_hdf5(sample_target_dt)
+        final_values = pd.Series(np.array([3, 4]), index=sample_symbols)
+        performances.add_final_values(sample_target_dt, final_values)
 
-    report_writer = OracleReportWriter(
-        output_path,
-        output_path,
-        run_mode,
-    )
+        mean_vector = pd.Series(np.array([1, 2]), index=sample_symbols)
+        covariance_matrix = pd.DataFrame(np.identity(n_symbols), index=sample_symbols, columns=sample_symbols)
+        performances.add_prediction(sample_target_dt, mean_vector, covariance_matrix)
 
-    report_writer.write()
+        performances.save_to_hdf5(sample_target_dt)
 
-    expected_files = ["oracle_correlation_coefficient.pdf",
-                      "oracle_cumulative_returns.pdf",
-                      "oracle_data_table.csv",
-                      "oracle_performance_table.csv",
-                      "time-series-plot.pdf"
-                      ]
+        report_writer = OracleReportWriter(
+            output_path,
+            output_path,
+            run_mode,
+        )
 
-    for filename in expected_files:
-        assert os.path.isfile(os.path.join(output_path, filename))
+        report_writer.write()
 
-    destroy_test_environment()
+        expected_files = ["oracle_correlation_coefficient.pdf",
+                          "oracle_cumulative_returns.pdf",
+                          "oracle_data_table.csv",
+                          "oracle_performance_table.csv",
+                          "time-series-plot.pdf"
+                          ]
+
+        for filename in expected_files:
+            assert os.path.isfile(os.path.join(output_path, filename))
 
 
 

@@ -31,13 +31,7 @@ class Controller(AbstractController):
                     self._do_train(raw_data, prediction_moment)
 
                 elif action == OracleAction.PREDICT:
-                    try:
-                        target_moment = self.scheduler.get_first_valid_target(prediction_moment,
-                                                                              self.oracle.prediction_horizon)
-                    except ScheduleException as e:
-                        logger.debug(e)
-                        continue
-                    prediction_result = self._do_predict(raw_data, prediction_moment, target_moment)
+                    prediction_result = self._do_predict(raw_data, prediction_moment)
                     if prediction_result:
                         self.prediction_moments.append(
                             (prediction_moment, prediction_result.prediction_timestamp,
@@ -88,7 +82,7 @@ class Controller(AbstractController):
         except Exception as e:
             logger.error("SKIP training. Reason: {}".format(e))
 
-    def _do_predict(self, raw_data, current_moment, target_moment):
+    def _do_predict(self, raw_data, current_moment):
         """
         Performs prediction
 
@@ -96,14 +90,12 @@ class Controller(AbstractController):
         :type raw_data: dict
         :param current_moment:
         :type current_moment: datetime.datetime
-        :param target_moment:
-        :type datetime.datetime
         :return:
         """
 
         logger.info("START prediction at {}".format(current_moment))
         try:
-            prediction_result = self.oracle.predict(raw_data, current_moment, target_moment)
+            prediction_result = self.oracle.predict(raw_data, current_moment)
             self.prediction_results.append(prediction_result)
             self._record_prediction(self.oracle.target_feature_name, prediction_result)
             self._record_actual_performance(self.oracle.target_feature_name, prediction_result.target_timestamp)
