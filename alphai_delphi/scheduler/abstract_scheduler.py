@@ -46,20 +46,6 @@ class AbstractScheduler(metaclass=ABCMeta):
         """
         raise NotImplementedError
 
-    @abstractmethod
-    def get_first_valid_target(self, moment, interval):
-        """
-        Given a datetime and an interval, give back the first suitable datetime according to market schedule
-
-        :param moment:
-        :type moment: datetime.datetime
-        :param interval:
-        :type interval: datetime.timedelta
-        :return: The first suitable datetime
-        :rtype: datetime.datetime
-        """
-        raise NotImplementedError
-
 
 class ScheduleException(Exception):
     pass

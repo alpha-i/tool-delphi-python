@@ -187,17 +187,6 @@ class Scheduler(AbstractScheduler):
 
         return computed_moments
 
-    def get_first_valid_target(self, moment, interval):
-        schedule = self.calendar.schedule(self.start_date, self.end_date)
-        target = moment + interval
-
-        while not self.calendar.open_at_time(schedule, target, include_close=True):
-            target += datetime.timedelta(days=1)
-            if target > self.end_date:
-                raise ScheduleException("Target outside of scheduling window")
-
-        return target
-
     def get_event(self, minute):
         events = self.schedule.get(minute)
         return list(events) if events else []

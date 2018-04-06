@@ -134,48 +134,6 @@ def test_scheduler_works_as_iterator():
         assert isinstance(events, list)
 
 
-def test_scheduler_checks_for_valid_prediction_target():
-    test_scheduler = Scheduler(
-        start_date=datetime.datetime(2017, 12, 20, tzinfo=pytz.utc),
-        end_date=datetime.datetime(2018, 1, 3, tzinfo=pytz.utc),
-        calendar_name='NYSE',
-        prediction_frequency=dict(
-            frequency_type=SchedulingFrequencyType.DAILY, minutes_offset=15
-        ),  # every day, 15m after market start
-        training_frequency=dict(
-            frequency_type=SchedulingFrequencyType.DAILY,
-            minutes_offset=15
-        ),  # every day, 30m after market start
-    )
-    prediction_target = test_scheduler.get_first_valid_target(
-        moment=datetime.datetime(2017, 12, 24, 16, 0, tzinfo=pytz.UTC),
-        interval=datetime.timedelta(days=1)
-    )
-
-    assert prediction_target == datetime.datetime(2017, 12, 26, 16, 0, tzinfo=pytz.UTC)
-
-
-def test_scheduler_checks_for_valid_prediction_target_with_early_close():
-    test_scheduler = Scheduler(
-        start_date=datetime.datetime(2017, 11, 1, tzinfo=pytz.utc),
-        end_date=datetime.datetime(2018, 1, 3, tzinfo=pytz.utc),
-        calendar_name='NYSE',
-        prediction_frequency=dict(
-            frequency_type=SchedulingFrequencyType.DAILY, minutes_offset=15
-        ),  # every day, 15m after market start
-        training_frequency=dict(
-            frequency_type=SchedulingFrequencyType.DAILY,
-            minutes_offset=15
-        ),  # every day, 30m after market start
-    )
-    prediction_target = test_scheduler.get_first_valid_target(
-        moment=datetime.datetime(2017, 11, 23, 16, 0, tzinfo=pytz.UTC),  # Thanksgiving is an early close (1PM) day
-        interval=datetime.timedelta(days=1)
-    )
-
-    assert prediction_target == datetime.datetime(2017, 11, 24, 16, 0, tzinfo=pytz.UTC)
-
-
 def test_scheduler_monthly():
     test_scheduler = Scheduler(
         start_date=datetime.datetime(2017, 11, 1, tzinfo=pytz.utc),

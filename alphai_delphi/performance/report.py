@@ -3,6 +3,8 @@ import os
 
 import matplotlib
 
+from alphai_delphi.performance import DefaultMetrics
+
 matplotlib.use('Agg')
 
 import numpy as np
@@ -33,21 +35,28 @@ N_ROLLING_WINDOW = 20
 
 ORACLE_MEAN_VECTOR_ENDSWITH_TEMPLATE = 'oracle_results_mean_vector.hdf5'
 ORACLE_COVARIANCE_MATRIX_ENDSWITH_TEMPLATE = 'oracle_results_covariance_matrix.hdf5'
-ORACLE_ACTUALS_ENDSWITH_TEMPLATE = 'oracle_results_actuals.hdf5'
+ORACLE_ACTUALS_ENDSWITH_TEMPLATE = 'oracle_results_returns_actuals.hdf5'
+
+
 ORACLE_SYMBOL_WEIGHTS_ENDSWITH_TEMPLATE = 'oracle_symbol_weights.csv'
 FINANCIAL_RETURNS_ENDSWITH_TEMPLATE = 'financial_returns.csv'
 FINANCIAL_POSITIONS_ENDSWITH_TEMPLATE = 'financial_positions.csv'
 FINANCIAL_TRANSACTIONS_ENDSWITH_TEMPLATE = 'financial_transactions.csv'
 FINANCIAL_BENCHMARK_ENDSWITH_TEMPLATE = 'benchmark.csv'
 BENCHMARK_NAME = 'SPY'
-ORACLE_METRIC_COLUMNS = ['returns_forecast_mean_vector', 'returns_forecast_covariance_matrix', 'returns_actuals']
+
+ORACLE_METRIC_COLUMNS = [
+                DefaultMetrics.mean_vector.value,
+                DefaultMetrics.covariance_matrix.value,
+                DefaultMetrics.returns_actuals.value
+                ]
 
 
-def create_oracle_performance_report(oracle_results, output_path, oracle_symbol_weights=None):
+def _create_oracle_performance_report(oracle_results, output_path, oracle_symbol_weights=None):
     """
     Calculate oracle performance metrics and save the table to csv
     :param oracle_results: Dataframe indexed by datetime with three columns
-    ['returns_actuals', 'returns_forecast_covariance_matrix', 'returns_forecast_mean_vector']
+    ['returns_actuals', 'covariance_matrix', 'mean_vector']
     :param output_path: path where to save the output
     :param oracle_symbol_weights:
     :return: Nothing
@@ -80,22 +89,22 @@ def create_oracle_performance_report(oracle_results, output_path, oracle_symbol_
     n_total_extreme_samples = 0
     absolute_binary_accumulator = 0
 
-    valid_covariances = check_validity_of_covariances(oracle_results)
+    valid_covariances = _check_validity_of_covariances(oracle_results)
 
     if valid_covariances:
-        inv_covariance_matrices = compute_covariance_inverses(oracle_results)
+        inv_covariance_matrices = _compute_covariance_inverses(oracle_results)
         logger.info("Attempting to compute optimal covariance matrix")
-        cov_factor = optimise_covariance(oracle_results, inv_covariance_matrices)
+        cov_factor = _optimise_covariance(oracle_results, inv_covariance_matrices)
     else:
         cov_factor = 1
         inv_covariance_matrices = []
         for i in range(n_samples):
             date = oracle_results.index[i]
-            forecast = oracle_results.returns_forecast_mean_vector[date].values
+            forecast = oracle_results.mean_vector[date].values
             n_predictions = len(forecast)
             diag_matrix = np.eye(n_predictions)
             inv_covariance_matrices.append(diag_matrix)
-            oracle_results.returns_forecast_covariance_matrix[date] = diag_matrix
+            oracle_results.covariance_matrix[date] = diag_matrix
 
     logger.info("Evaluating likelihoods")
     for i in range(n_samples):
@@ -103,7 +112,7 @@ def create_oracle_performance_report(oracle_results, output_path, oracle_symbol_
         date = pd.datetime.strptime(date_str, '%Y%m%d-%H%M%S').date()
 
         pd_truth = oracle_results.returns_actuals[date_str]
-        pd_forecast = oracle_results.returns_forecast_mean_vector[date_str]
+        pd_forecast = oracle_results.mean_vector[date_str]
 
         true_cols = list(pd_truth.index.values)
         forecast_cols = list(pd_forecast.index.values)
@@ -116,15 +125,15 @@ def create_oracle_performance_report(oracle_results, output_path, oracle_symbol_
             weights = None
         else:
             predicted_symbols = pd_truth.index.tolist()
-            weights = extract_weight_array(predicted_symbols, oracle_symbol_weights)
-        weighted_corr_coeff.loc[date] = calculate_weighted_correlation_coefficient(truth, forecast, weights)
+            weights = _extract_weight_array(predicted_symbols, oracle_symbol_weights)
+        weighted_corr_coeff.loc[date] = _calculate_weighted_correlation_coefficient(truth, forecast, weights)
 
-        covariance = oracle_results.returns_forecast_covariance_matrix[date_str]
+        covariance = oracle_results.covariance_matrix[date_str]
         covariance = np.asarray(covariance)
         optimal_covariance = cov_factor * covariance
 
         truth, forecast, covariance, masked_optimal_covariance = \
-            calc_masked_forecasts(truth, forecast, covariance, optimal_covariance)
+            _calc_masked_forecasts(truth, forecast, covariance, optimal_covariance)
 
         forecast_correlation_matrix = np.corrcoef(truth, forecast)
         corr_coeff.loc[date] = forecast_correlation_matrix[0, 1]
@@ -157,8 +166,8 @@ def create_oracle_performance_report(oracle_results, output_path, oracle_symbol_
             logger.info('Example truth: {}.'.format(truth[1:10]))
             logger.info('Example forecast: {}.'.format(forecast[1:10]))
 
-        true_relative_winners_losers = calculate_winners_losers(truth)
-        forecast_relative_winners_losers = calculate_winners_losers(forecast)
+        true_relative_winners_losers = _calculate_winners_losers(truth)
+        forecast_relative_winners_losers = _calculate_winners_losers(forecast)
 
         binary_accumulator += np.mean(true_relative_winners_losers == forecast_relative_winners_losers)
 
@@ -197,7 +206,7 @@ def create_oracle_performance_report(oracle_results, output_path, oracle_symbol_
     total_market_return = np.exp(np.nansum(frac_change_market))
 
     oracle_performance_table["rms"] = np.nanstd(np.concatenate(oracle_results.returns_actuals, axis=0) -
-                                                np.concatenate(oracle_results.returns_forecast_mean_vector, axis=0))
+                                                np.concatenate(oracle_results.mean_vector, axis=0))
 
     oracle_performance_table["min_rms"] = np.nanstd(np.concatenate(oracle_results.returns_actuals, axis=0))
 
@@ -210,17 +219,17 @@ def create_oracle_performance_report(oracle_results, output_path, oracle_symbol_
     n_nans = np.isnan(chi_squared_array).sum()
     n_infs = np.isinf(chi_squared_array).sum()
 
-    total_log_l, log_l_per_samples = calc_masked_likelihoods(log_likelihood_array)
-    null_log_l, null_log_l_per_samples = calc_masked_likelihoods(null_log_likelihood_array)
-    inv_total_log_l, inv_log_l_per_samples = calc_masked_likelihoods(inverted_log_likelihood_array)
-    inf_total_log_l, inf_log_l_per_samples = calc_masked_likelihoods(inflated_cov_log_likelihood_array)
-    def_total_log_l, def_log_l_per_samples = calc_masked_likelihoods(deflated_cov_log_likelihood_array)
-    max_total_log_l, max_log_l_per_samples = calc_masked_likelihoods(optimal_log_likelihood_array)
+    total_log_l, log_l_per_samples = _calc_masked_likelihoods(log_likelihood_array)
+    null_log_l, null_log_l_per_samples = _calc_masked_likelihoods(null_log_likelihood_array)
+    inv_total_log_l, inv_log_l_per_samples = _calc_masked_likelihoods(inverted_log_likelihood_array)
+    inf_total_log_l, inf_log_l_per_samples = _calc_masked_likelihoods(inflated_cov_log_likelihood_array)
+    def_total_log_l, def_log_l_per_samples = _calc_masked_likelihoods(deflated_cov_log_likelihood_array)
+    max_total_log_l, max_log_l_per_samples = _calc_masked_likelihoods(optimal_log_likelihood_array)
 
     oracle_performance_table['NaNs found in chi2'] = n_nans
     oracle_performance_table['Infs found in chi2'] = n_infs
 
-    oracle_performance_table["reduced-chi2"] = calc_masked_reduced_chi2(chi_squared_array)
+    oracle_performance_table["reduced-chi2"] = _calc_masked_reduced_chi2(chi_squared_array)
     oracle_performance_table['total-log-likelihood'] = total_log_l
     oracle_performance_table['log-likelihood-per-sample'] = log_l_per_samples
 
@@ -231,19 +240,19 @@ def create_oracle_performance_report(oracle_results, output_path, oracle_symbol_
     oracle_performance_table['max-total-log-likelihood'] = max_total_log_l
     oracle_performance_table['max-log-likelihood-per-sample'] = max_log_l_per_samples
 
-    oracle_performance_table["null-reduced-chi2"] = calc_masked_reduced_chi2(null_chi_squared_array)
+    oracle_performance_table["null-reduced-chi2"] = _calc_masked_reduced_chi2(null_chi_squared_array)
     oracle_performance_table['null-total-log-likelihood'] = null_log_l
     oracle_performance_table['null-log-likelihood-per-sample'] = null_log_l_per_samples
 
-    oracle_performance_table["inverted-reduced-chi2"] = calc_masked_reduced_chi2(inverted_chi_squared_array)
+    oracle_performance_table["inverted-reduced-chi2"] = _calc_masked_reduced_chi2(inverted_chi_squared_array)
     oracle_performance_table['inverted-total-log-likelihood'] = inv_total_log_l
     oracle_performance_table['inverted-log-likelihood-per-sample'] = inv_log_l_per_samples
 
-    oracle_performance_table["inflated-cov-reduced-chi2"] = calc_masked_reduced_chi2(inflated_cov_chi_squared_array)
+    oracle_performance_table["inflated-cov-reduced-chi2"] = _calc_masked_reduced_chi2(inflated_cov_chi_squared_array)
     oracle_performance_table['inflated-cov-total-log-likelihood'] = inf_total_log_l
     oracle_performance_table['inflated-cov-log-likelihood-per-sample'] = inf_log_l_per_samples
 
-    oracle_performance_table["deflated-cov-reduced-chi2"] = calc_masked_reduced_chi2(deflated_cov_chi_squared_array)
+    oracle_performance_table["deflated-cov-reduced-chi2"] = _calc_masked_reduced_chi2(deflated_cov_chi_squared_array)
     oracle_performance_table['deflated-cov-total-log-likelihood'] = def_total_log_l
     oracle_performance_table['deflated-cov-log-likelihood-per-sample'] = def_log_l_per_samples
 
@@ -263,24 +272,24 @@ def create_oracle_performance_report(oracle_results, output_path, oracle_symbol_
     oracle_performance_table.to_csv(os.path.join(output_path, 'oracle_performance_table.csv'))
 
     # Plots
-    create_moving_average_figure(
+    _create_moving_average_figure(
         corr_coeff,
         'Correlation Coefficient',
         N_ROLLING_WINDOW
     ).savefig(os.path.join(output_path, 'oracle_correlation_coefficient.pdf'))
 
-    create_time_series_comparison_figure(
+    _create_time_series_comparison_figure(
         [frac_change_portfolio.cumsum(), frac_change_market.cumsum()],
         ['Portfolio', 'Market'], 'Cumulative returns'
     ).savefig(os.path.join(output_path, 'oracle_cumulative_returns.pdf'))
 
 
-def optimise_covariance(oracle_results, inv_covariance_matrices):
+def _optimise_covariance(oracle_results, inv_covariance_matrices):
     """ Searches for some optimal rescaling of the cov matrix.
     """
 
     optimal_cov_factor = minimize_scalar(
-        oracle_covariance_optimisation,
+        _oracle_covariance_optimisation,
         args=(oracle_results, inv_covariance_matrices),
         bounds=(1e-3, 1e3), method='bounded'
     )
@@ -289,7 +298,7 @@ def optimise_covariance(oracle_results, inv_covariance_matrices):
     return optimal_cov_factor.x
 
 
-def oracle_covariance_optimisation(cov_factor, oracle_results, inv_covariance_matrices):
+def _oracle_covariance_optimisation(cov_factor, oracle_results, inv_covariance_matrices):
     """ Provides objective to minimise when looking for optimal covariance matrix. """
 
     cost = 0
@@ -298,9 +307,9 @@ def oracle_covariance_optimisation(cov_factor, oracle_results, inv_covariance_ma
     for i in range(n_samples):
         date = oracle_results.index[i]
         truth = oracle_results.returns_actuals[date]
-        forecast = oracle_results.returns_forecast_mean_vector[date]
+        forecast = oracle_results.mean_vector[date]
         inv_covariance = inv_covariance_matrices[i]
-        sample_cost = neg_log_likelihood(cov_factor, truth, forecast, inv_covariance)
+        sample_cost = _neg_log_likelihood(cov_factor, truth, forecast, inv_covariance)
 
         if not np.isnan(sample_cost):
             cost += sample_cost
@@ -308,29 +317,29 @@ def oracle_covariance_optimisation(cov_factor, oracle_results, inv_covariance_ma
     return cost
 
 
-def neg_log_likelihood(cov_factor, truth, forecast, inv_cov):
+def _neg_log_likelihood(cov_factor, truth, forecast, inv_cov):
     """ Provides the target to minmise (related to negative log likelihood; ignoring constant contributions) """
 
     n_dims = inv_cov.shape[0]
     scaled_log_det = n_dims * np.log(cov_factor)  # Change in the log determinant relative to cov_factor=1
     scaled_inv_cov = inv_cov / cov_factor
     diff_vector = truth - forecast
-    scaled_chi_squared = calculate_chi_squared_from_inv_cov(diff_vector, scaled_inv_cov)
+    scaled_chi_squared = _calculate_chi_squared_from_inv_cov(diff_vector, scaled_inv_cov)
     pseudo_log_likeli = -(scaled_chi_squared + scaled_log_det)
 
     return -pseudo_log_likeli  # Try to minimise neg_log_likeli, will maximise log_likeli
 
 
-def calculate_chi_squared_from_inv_cov(diff_vector, inv_cov):
+def _calculate_chi_squared_from_inv_cov(diff_vector, inv_cov):
     temp_matrix = np.dot(diff_vector.T, inv_cov)
     return np.dot(temp_matrix, diff_vector)
 
 
-def create_oracle_data_report(oracle_results, output_path):
+def _create_oracle_data_report(oracle_results, output_path):
     """
     Calculate histogram of truth and forecast and save the table to csv
     :param oracle_results: Dataframe indexed by datetime with three columns
-    ['returns_actuals', 'returns_forecast_covariance_matrix', 'returns_forecast_mean_vector']
+    ['returns_actuals', 'covariance_matrix', 'mean_vector']
     :param output_path: path where to save the output
     :return: Nope
     """
@@ -358,7 +367,7 @@ def create_oracle_data_report(oracle_results, output_path):
     for i in range(n_samples):
         date = oracle_results.index[i]
         truth = oracle_results.returns_actuals[date].dropna()
-        forecast = oracle_results.returns_forecast_mean_vector[date].dropna()
+        forecast = oracle_results.mean_vector[date].dropna()
 
         if i == 0:
             true_hist = np.histogram(truth, bins=bin_edges)[0]
@@ -375,7 +384,7 @@ def create_oracle_data_report(oracle_results, output_path):
         infs_in_forecast += np.sum(np.isinf(forecast))
 
         nans_in_truth += oracle_results.returns_actuals[date].isnull().sum()
-        nans_in_forecast += oracle_results.returns_forecast_mean_vector[date].isnull().sum()
+        nans_in_forecast += oracle_results.mean_vector[date].isnull().sum()
 
         sample_max_forecast = np.max(np.abs(forecast))
         max_forecast = np.maximum(sample_max_forecast, max_forecast)
@@ -399,7 +408,7 @@ def create_oracle_data_report(oracle_results, output_path):
     oracle_data_table.to_csv(os.path.join(output_path, 'oracle_data_table.csv'))
 
 
-def calc_masked_reduced_chi2(chi_squared_array):
+def _calc_masked_reduced_chi2(chi_squared_array):
     """ Computes reduced chi2 while ignoring the presence of NaN or Infs """
 
     valid_chi2 = np.ma.masked_invalid(chi_squared_array)
@@ -410,7 +419,7 @@ def calc_masked_reduced_chi2(chi_squared_array):
     return total_chi2 / n_degrees_of_freedom
 
 
-def calc_masked_likelihoods(log_likelihood_array):
+def _calc_masked_likelihoods(log_likelihood_array):
     """ Computes total and per-sample likelihoods, ignoring the presence of NaN or Infs  """
 
     valid_likelihoods = np.ma.masked_invalid(log_likelihood_array)
@@ -420,7 +429,7 @@ def calc_masked_likelihoods(log_likelihood_array):
     return total_l, l_per_sample
 
 
-def calc_masked_forecasts(truth, forecast, covariance, optimal_covariance):
+def _calc_masked_forecasts(truth, forecast, covariance, optimal_covariance):
     """ Return only those elements where both truth and forecast are not nans """
 
     valid_elements = ~np.ma.masked_invalid(truth + forecast).mask
@@ -436,7 +445,7 @@ def calc_masked_forecasts(truth, forecast, covariance, optimal_covariance):
     return valid_truth, valid_forecast, valid_covariance, valid_optimal_covariance
 
 
-def compute_covariance_inverses(oracle_results):
+def _compute_covariance_inverses(oracle_results):
     """Precompute inverses so the optimiser doesnt have to do it each time"""
 
     n_samples = len(oracle_results)
@@ -444,15 +453,15 @@ def compute_covariance_inverses(oracle_results):
 
     for i in range(n_samples):
         date = oracle_results.index[i]
-        covariance = oracle_results.returns_forecast_covariance_matrix[date]
-        covariance = prepare_covariance_for_inversion(covariance)
+        covariance = oracle_results.covariance_matrix[date]
+        covariance = _prepare_covariance_for_inversion(covariance)
 
         inv_covariance_matrices.append(np.linalg.inv(covariance))
 
     return inv_covariance_matrices
 
 
-def prepare_covariance_for_inversion(covariance):
+def _prepare_covariance_for_inversion(covariance):
     """ Ensure there are no zeros on the diagonal """
 
     covariance = np.asarray(covariance)
@@ -465,7 +474,7 @@ def prepare_covariance_for_inversion(covariance):
     return covariance
 
 
-def calculate_winners_losers(data):
+def _calculate_winners_losers(data):
     """ Returns -1 or +1 in place of whether the element is above or below the median. """
 
     median = np.median(data)
@@ -487,7 +496,7 @@ def _get_all_symbols(oracle_results):
     """
     get all unique tick symbols and return as a set
     :param oracle_results: Dataframe indexed by datetime with three columns
-    ['returns_actuals', 'returns_forecast_covariance_matrix', 'returns_forecast_mean_vector']
+    ['returns_actuals', 'covariance_matrix', 'mean_vector']
     :return: returns a set of all unique symbols
     """
     symbols = []
@@ -500,7 +509,7 @@ def _make_df_dict(oracle_results):
     """
     returns a dict where key value pairs are the tick-symbols and dataframe
     :param oracle_results: Dataframe indexed by datetime with three columns
-    ['returns_actuals', 'returns_forecast_covariance_matrix', 'returns_forecast_mean_vector']
+    ['returns_actuals', 'covariance_matrix', 'mean_vector']
     :return: returns a dict where key value pairs are the tick-symbols and dataframe
     """
     symbols = _get_all_symbols(oracle_results)
@@ -520,8 +529,8 @@ def _make_df_dict(oracle_results):
 
                 time_stamps.append(oracle_results['returns_actuals'].index[i])
                 returns_actual.append(oracle_results['returns_actuals'][i][symbol])
-                returns_forecast_mean.append(oracle_results['returns_forecast_mean_vector'][i][symbol])
-                covariance_matrix = oracle_results['returns_forecast_covariance_matrix'][i]
+                returns_forecast_mean.append(oracle_results['mean_vector'][i][symbol])
+                covariance_matrix = oracle_results['covariance_matrix'][i]
                 if isinstance(covariance_matrix, (np.ndarray, np.generic)):
                     variance = 1.0
                 else:
@@ -538,11 +547,11 @@ def _make_df_dict(oracle_results):
     return dict_of_df
 
 
-def create_time_series_plot(oracle_results, output_path):
+def _create_time_series_plot(oracle_results, output_path):
     """
     make a time-series plot of the target + prediction with errors
     :param oracle_results: Dataframe indexed by datetime with three columns
-    ['returns_actuals', 'returns_forecast_covariance_matrix', 'returns_forecast_mean_vector']
+    ['returns_actuals', 'covariance_matrix', 'mean_vector']
     :param output_path: path where to save the output
     :return:
     """
@@ -585,7 +594,7 @@ def create_time_series_plot(oracle_results, output_path):
                 dicts_for_page = {}
 
 
-def calculate_weighted_correlation_coefficient(truth, forecast, oracle_symbol_weights):
+def _calculate_weighted_correlation_coefficient(truth, forecast, oracle_symbol_weights):
     """ Estimate the correlation coefficient with weights
 
     :param truth:
@@ -621,7 +630,7 @@ def calculate_weighted_correlation_coefficient(truth, forecast, oracle_symbol_we
     return correlation
 
 
-def extract_weight_array(predicted_symbols, oracle_symbol_weights):
+def _extract_weight_array(predicted_symbols, oracle_symbol_weights):
     """
 
     :param list of predicted_symbols:
@@ -639,7 +648,7 @@ def extract_weight_array(predicted_symbols, oracle_symbol_weights):
     return weights
 
 
-def create_moving_average_figure(time_series, series_name, rolling_window):
+def _create_moving_average_figure(time_series, series_name, rolling_window):
     fig = plt.figure(figsize=(14, 6))
     ax = fig.add_subplot(111)
 
@@ -669,7 +678,7 @@ def create_moving_average_figure(time_series, series_name, rolling_window):
     return fig
 
 
-def create_time_series_comparison_figure(time_series_list, series_name_list, y_label):
+def _create_time_series_comparison_figure(time_series_list, series_name_list, y_label):
     fig = plt.figure(figsize=(14, 6))
     ax = fig.add_subplot(111)
 
@@ -689,7 +698,7 @@ def create_time_series_comparison_figure(time_series_list, series_name_list, y_l
     return fig
 
 
-def get_results_file(path, ends_with, required=True, starts_with=None):
+def _get_results_file(path, ends_with, required=True, starts_with=None):
     all_files_in_path = os.listdir(path)
     matching_file_list = []
 
@@ -710,27 +719,27 @@ def get_results_file(path, ends_with, required=True, starts_with=None):
     return os.path.join(path, matching_file_list[0])
 
 
-def read_oracle_results_from_path(results_path, run_mode=None):
-    oracle_results_mean_vector_filepath = get_results_file(results_path, ORACLE_MEAN_VECTOR_ENDSWITH_TEMPLATE,
-                                                           starts_with=run_mode)
-    oracle_results_covariance_matrix_filepath = get_results_file(results_path,
-                                                                 ORACLE_COVARIANCE_MATRIX_ENDSWITH_TEMPLATE,
-                                                                 starts_with=run_mode)
-    oracle_results_actuals_filepath = get_results_file(results_path, ORACLE_ACTUALS_ENDSWITH_TEMPLATE,
-                                                       starts_with=run_mode)
+def _read_oracle_results_from_path(results_path, run_mode=None):
+    oracle_results_mean_vector_filepath = _get_results_file(results_path, ORACLE_MEAN_VECTOR_ENDSWITH_TEMPLATE,
+                                                            starts_with=run_mode)
+    oracle_results_covariance_matrix_filepath = _get_results_file(results_path,
+                                                                  ORACLE_COVARIANCE_MATRIX_ENDSWITH_TEMPLATE,
+                                                                  starts_with=run_mode)
+    oracle_results_actuals_filepath = _get_results_file(results_path, ORACLE_ACTUALS_ENDSWITH_TEMPLATE,
+                                                        starts_with=run_mode)
 
-    oracle_results = read_oracle_results_files(oracle_results_mean_vector_filepath,
-                                               oracle_results_covariance_matrix_filepath,
-                                               oracle_results_actuals_filepath)
+    oracle_results = _read_oracle_results_files(oracle_results_mean_vector_filepath,
+                                                oracle_results_covariance_matrix_filepath,
+                                                oracle_results_actuals_filepath)
     return oracle_results
 
 
-def read_oracle_results_files(mean_vector_file, covariance_matrix_file, actuals_file):
+def _read_oracle_results_files(mean_vector_file, covariance_matrix_file, actuals_file):
     store_mean_vector = pd.HDFStore(mean_vector_file)
     store_covariance_matrix = pd.HDFStore(covariance_matrix_file)
     store_actuals = pd.HDFStore(actuals_file)
 
-    timestamps = extract_matching_timestamps(store_mean_vector, store_covariance_matrix, store_actuals)
+    timestamps = _extract_matching_timestamps(store_mean_vector, store_covariance_matrix, store_actuals)
     oracle_results = pd.DataFrame(columns=ORACLE_METRIC_COLUMNS)
 
     for dt in timestamps:
@@ -745,9 +754,9 @@ def read_oracle_results_files(mean_vector_file, covariance_matrix_file, actuals_
     return oracle_results
 
 
-def read_oracle_symbol_weights_from_path(results_path):
-    oracle_symbol_weights_filepath = get_results_file(results_path, ORACLE_SYMBOL_WEIGHTS_ENDSWITH_TEMPLATE,
-                                                      required=False)
+def _read_oracle_symbol_weights_from_path(results_path):
+    oracle_symbol_weights_filepath = _get_results_file(results_path, ORACLE_SYMBOL_WEIGHTS_ENDSWITH_TEMPLATE,
+                                                       required=False)
     if oracle_symbol_weights_filepath is None:
         oracle_symbol_weights = None
     else:
@@ -756,7 +765,7 @@ def read_oracle_symbol_weights_from_path(results_path):
     return oracle_symbol_weights
 
 
-def extract_matching_timestamps(df, reference_a, reference_b):
+def _extract_matching_timestamps(df, reference_a, reference_b):
     """ Collects timestamps from first argument which also appear in other two
 
     :param df:
@@ -778,15 +787,15 @@ def extract_matching_timestamps(df, reference_a, reference_b):
     return matching_timestamps
 
 
-def check_validity_of_covariances(oracle_results):
+def _check_validity_of_covariances(oracle_results):
     valid_covariances = True
 
     n_samples = len(oracle_results)
     for i in range(n_samples):
         date = oracle_results.index[i]
-        covariance = oracle_results.returns_forecast_covariance_matrix[date]
+        covariance = oracle_results.covariance_matrix[date]
 
-        forecast = oracle_results.returns_forecast_mean_vector[date].dropna().values
+        forecast = oracle_results.mean_vector[date].dropna().values
 
         n_predict = len(forecast)
         cov_size = covariance.shape
@@ -798,3 +807,28 @@ def check_validity_of_covariances(oracle_results):
             break
 
     return valid_covariances
+
+
+class OracleReportWriter:
+
+    def __init__(self, sources_path, output_path, prefix):
+        """
+        Writes Oracle Reports
+        :param str sources_path: path where source hd5 are created
+        :param str output_path: path where pdf and csv are created
+        :param str prefix: prefix of the results
+        """
+        self._sources_path = sources_path
+        self._output_path = output_path
+        self._prefix = prefix
+
+    def write(self):
+        logger.info("Creating performance report...")
+        sources_path = self._sources_path
+        output_path = self._output_path
+        oracle_results = _read_oracle_results_from_path(sources_path, run_mode=self._prefix)
+        oracle_symbol_weights = _read_oracle_symbol_weights_from_path(sources_path)
+        _create_oracle_performance_report(oracle_results, output_path, oracle_symbol_weights)
+        _create_oracle_data_report(oracle_results, output_path)
+        _create_time_series_plot(oracle_results, output_path)
+        logger.info("Performance report finished.")
